@@ -90,6 +90,19 @@ export async function findObrasByCriadoPor(criadoPorId: string): Promise<Obra[]>
   })
 }
 
+export async function findAllObras(): Promise<ObraWithRelations[]> {
+  return await db.obra.findMany({
+    include: {
+      torres: {
+        include: {
+          pavimentos: true
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
+}
+
 export async function checkCeiExists(cei: string): Promise<boolean> {
   const obra = await db.obra.findUnique({
     where: { cei }
