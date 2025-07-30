@@ -1,0 +1,136 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Usuario {
+  id         String      @id @default(uuid())
+  nome       String
+  sobrenome  String
+  email      String      @unique
+  obras      Obra[]      @relation("UsuarioObras")
+  atividades Atividade[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Obra {
+  id             String   @id @default(uuid())
+  nome           String
+  cei            String   @unique
+  endereco       String
+  valorM2        Decimal
+  dataInicio     DateTime
+  dataFim        DateTime
+  totalGeral     Decimal
+  totalExecutado Decimal
+  totalPendente  Decimal
+
+  criadoPorId String
+  criadoPor   Usuario @relation("UsuarioObras", fields: [criadoPorId], references: [id])
+
+  torres     Torre[]
+  equipes    Equipe[]
+  atividades Atividade[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Torre {
+  id   String @id @default(uuid())
+  nome String
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  pavimentos Pavimento[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Pavimento {
+  id                  String   @id @default(uuid())
+  identificador       String
+  dataExecucao        DateTime
+  areaExecutadaM2     Decimal
+  areaM2              Decimal
+  percentualExecutado Decimal
+  argamassaM3         Decimal
+  espessuraCM         Decimal
+  obs                 String?
+
+  torreId String
+  torre   Torre  @relation(fields: [torreId], references: [id], onDelete: Cascade)
+
+  atividades Atividade[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Integrante {
+  id       String @id @default(uuid())
+  nome     String
+  equipeId String
+  equipe   Equipe @relation(fields: [equipeId], references: [id])
+}
+
+model Equipe {
+  id   String @id @default(uuid())
+  nome String
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  atividades  Atividade[]
+  integrantes Integrante[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Atividade {
+  id                       String   @id @default(uuid())
+  aditivoM3                Decimal?
+  aditivoL                 Decimal?
+  saldoAcumuladoM2         Decimal?
+  percentualSaldoAcumulado Decimal?
+  execucao                 String?
+  inicioExpediente         DateTime?
+  inicioAlmoco             DateTime?
+  fimAlmoco                DateTime?
+  fimExpediente            DateTime?
+  obsExecucao              String?
+  obsPonto                 String?
+  obsQtdBetoneira          String?
+  obsHOI                   String?
+
+  equipeId String
+  equipe   Equipe @relation(fields: [equipeId], references: [id])
+
+  usuarioId String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id])
+
+  pavimentoId String
+  pavimento   Pavimento @relation(fields: [pavimentoId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
