@@ -14,8 +14,22 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum Role {
+  MASTER
+  OPERADOR
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
 model Usuario {
   id         String      @id @default(uuid())
+  username   String      @unique
+  password   String
+  role       Role        @default(OPERADOR)
+  status     Status      @default(ACTIVE)
   nome       String
   sobrenome  String
   email      String      @unique

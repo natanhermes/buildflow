@@ -1,6 +1,5 @@
 "use client"
 
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -42,7 +41,6 @@ export default function RelatoriosPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <SidebarTrigger />
           <h2 className="text-3xl font-bold tracking-tight">Relatórios</h2>
         </div>
         <div className="flex gap-2">

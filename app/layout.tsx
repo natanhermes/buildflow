@@ -2,16 +2,15 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { AppSidebar } from "@/components/app-sidebar"
 import { Toaster } from "@/components/ui/toaster"
+import AuthProvider from "@/components/auth-provider"
+import AuthenticatedLayout from "@/components/authenticated-layout"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Dashboard de Obras Civis",
+  title: "BuildFlow RN",
   description: "Sistema de gestão de obras civis",
-    generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -22,10 +21,11 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <SidebarProvider>
-          <AppSidebar />
-          <main className="flex-1 overflow-auto">{children}</main>
-        </SidebarProvider>
+        <AuthProvider>
+          <AuthenticatedLayout>
+            {children}
+          </AuthenticatedLayout>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>

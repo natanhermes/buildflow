@@ -1,4 +1,3 @@
-import { SidebarTrigger } from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -13,7 +12,6 @@ export default function ObrasPage() {
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <SidebarTrigger />
           <h2 className="text-3xl font-bold tracking-tight">Obras</h2>
         </div>
         <Button asChild>

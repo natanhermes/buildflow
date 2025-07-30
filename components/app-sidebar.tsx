@@ -67,7 +67,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-2 py-2">
           <Building2 className="h-8 w-8 text-primary" />
           <div>
-            <h2 className="text-lg font-semibold">Obras Manager</h2>
+            <h2 className="text-lg font-semibold">BuildFlow RN</h2>
             <p className="text-xs text-muted-foreground">Gestão de Obras Civis</p>
           </div>
         </div>
