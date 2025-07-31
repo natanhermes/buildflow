@@ -2,7 +2,6 @@ import { Suspense } from 'react'
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
-import { QueryProvider } from '@/components/query-provider'
 import { ObrasList } from '@/components/obras/obras-list'
 import { LoadingState } from '@/components/obras/loading-state'
 
@@ -16,22 +15,20 @@ function ObrasContent() {
 
 export default function ObrasPage() {
   return (
-    <QueryProvider>
-      <div className="flex-1 space-y-4 p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-3xl font-bold tracking-tight">Obras</h2>
-          </div>
-          <Button asChild>
-            <Link href="/obras/nova">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Obra
-            </Link>
-          </Button>
+    <div className="flex-1 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <h2 className="text-3xl font-bold tracking-tight">Obras</h2>
         </div>
-
-        <ObrasContent />
+        <Button asChild>
+          <Link href="/obras/nova">
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Obra
+          </Link>
+        </Button>
       </div>
-    </QueryProvider>
+
+      <ObrasContent />
+    </div>
   )
 }
