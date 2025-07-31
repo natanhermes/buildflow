@@ -18,11 +18,11 @@ import {
 } from "@/components/ui/sidebar"
 
 const menuItems = [
-  // {
-  //   title: "Dashboard",
-  //   url: "/",
-  //   icon: Home,
-  // },
+  {
+    title: "Dashboard",
+    url: "/",
+    icon: Home,
+  },
   {
     title: "Obras",
     url: "/obras",

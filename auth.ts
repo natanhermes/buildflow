@@ -4,30 +4,27 @@ import { ZodError, object, string } from "zod"
 import { findUserByCredentials } from "./services/user/user.service"
 
 const signInSchema = object({
-  username: string({ required_error: "Username é obrigatório" })
-    .min(1, "Username é obrigatório"),
-  password: string({ required_error: "Password é obrigatório" })
-    .min(1, "Password é obrigatório")
-    .min(3, "Password deve ter pelo menos 3 caracteres"),
+  username: string({ required_error: "Nome de usuário é obrigatório" })
+    .min(1, "Nome de usuário é obrigatório"),
+  password: string({ required_error: "Senha é obrigatória" })
+    .min(1, "Senha é obrigatória")
+    .min(3, "Senha deve ter pelo menos 3 caracteres"),
 })
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 1 * 24 * 60 * 60,
+  },
   pages: {
-    signIn: "/signin",
+    signIn: "/",
   },
   providers: [
     Credentials({
       credentials: {
-        username: {
-          label: "Usuário",
-          type: "text",
-          placeholder: "Digite seu usuário",
-        },
-        password: {
-          label: "Senha", 
-          type: "password",
-          placeholder: "Digite sua senha",
-        },
+        username: {},
+        password: {},
       },
       async authorize(credentials) {
         try {
@@ -36,7 +33,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           const user = await findUserByCredentials(username, password)
 
           if (!user) {
-            throw new Error("Credenciais inválidas.")
+            return null
           }
 
           return {
@@ -45,7 +42,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             email: user.email,
             username: user.username,
             role: user.role,
-            status: user.status,
             nome: user.nome,
             sobrenome: user.sobrenome,
           }
@@ -53,7 +49,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (error instanceof ZodError) {
             return null
           }
-          throw new Error("Erro de autenticação.")
+          
+          return null
         }
       },
     }),
@@ -61,10 +58,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        const customUser = user as any
+        const customUser = user
         token.username = String(customUser.username || "")
         token.role = String(customUser.role || "")
-        token.status = String(customUser.status || "")
         token.nome = String(customUser.nome || "")
         token.sobrenome = String(customUser.sobrenome || "")
       }
@@ -75,7 +71,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.sub
         session.user.username = String(token.username || "")
         session.user.role = String(token.role || "")
-        session.user.status = String(token.status || "")
         session.user.nome = String(token.nome || "")
         session.user.sobrenome = String(token.sobrenome || "")
       }

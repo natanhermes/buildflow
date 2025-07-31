@@ -1,7 +1,7 @@
 "use client"
 
 import { Menu, LogOut } from "lucide-react"
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { useSidebar } from "@/components/ui/sidebar"
 import {
@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Role } from "@prisma/client"
+import Form from "next/form"
+import { logoutAction } from "@/app/actions/logoutAction"
 
 export function AppHeader() {
   const { data: session } = useSession()
@@ -48,7 +50,6 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center px-4">
-        {/* Trigger da Sidebar */}
         <Button
           variant="ghost"
           size="icon"
@@ -59,27 +60,25 @@ export function AppHeader() {
           <span className="sr-only">Alternar menu</span>
         </Button>
 
-        {/* Espaço flexível */}
         <div className="flex-1" />
 
         <div className="mr-4">
           {getLabelByRole(session.user.role)}
         </div>
 
-        {/* Informações do usuário e logout */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">
                 Olá, {getFullName(session.user.nome, session.user.sobrenome)}
               </span>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {getUserInitials(session.user.nome, session.user.sobrenome)}
-                </AvatarFallback>
-              </Avatar>
-            </Button>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {getUserInitials(session.user.nome, session.user.sobrenome)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
@@ -92,12 +91,13 @@ export function AppHeader() {
               </div>
             </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="cursor-pointer"
-              onClick={() => signOut({ callbackUrl: "/signin" })}
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Sair</span>
+            <DropdownMenuItem>
+              <Form action={logoutAction} className="w-full">
+                <button className="w-full flex items-center gap-2">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sair
+                </button>
+              </Form>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

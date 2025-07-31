@@ -1,15 +1,30 @@
-export { auth as middleware } from "@/auth"
+import { NextResponse } from 'next/server'
+
+import { auth } from '@/auth'
+
+export default auth((request) => {
+  const { nextUrl } = request
+  const isLoggedIn = !!request.auth
+  const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
+  const isOnLogin = nextUrl.pathname === '/'
+
+  if (isLoggedIn && isOnLogin) {
+    return NextResponse.redirect(new URL('/dashboard', nextUrl))
+  }
+
+  if (!isLoggedIn && isOnDashboard) {
+    return NextResponse.redirect(new URL('/', nextUrl))
+  }
+
+  return NextResponse.next()
+})
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (authentication endpoints)
-     * - signin (login page)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!api/auth|signin|_next/static|_next/image|favicon.ico).*)",
+    '/dashboard/:path*',
+    '/obras/:path*',
+    '/atividades/:path*',
+    '/',
+    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)"
   ],
 }

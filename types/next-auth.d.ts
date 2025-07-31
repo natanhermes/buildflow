@@ -5,7 +5,6 @@ declare module "next-auth" {
     id: string
     username: string
     role: string
-    status: string
     nome: string
     sobrenome: string
   }
@@ -18,7 +17,6 @@ declare module "next-auth" {
       image?: string | null
       username: string
       role: Role
-      status: string
       nome: string
       sobrenome: string
     }
@@ -29,7 +27,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     username: string
     role: string
-    status: string
     nome: string
     sobrenome: string
   }

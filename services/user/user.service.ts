@@ -1,5 +1,5 @@
 import db from '@/lib/db'
-import { Prisma, Usuario } from '@prisma/client'
+import { Usuario, Status } from '@prisma/client'
 import { compareSync } from 'bcryptjs'
 
 
@@ -12,6 +12,7 @@ export async function findUserByCredentials(
   const user = await db.usuario.findFirst({
     where: {
       username,
+      status: Status.ACTIVE,
     },
   })
 
