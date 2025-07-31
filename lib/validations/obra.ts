@@ -4,7 +4,6 @@ export const pavimentoSchema = z.object({
   identificador: z.string().min(1, 'Identificador é obrigatório'),
   areaM2: z.coerce.number().positive('Área deve ser maior que zero'),
   argamassaM3: z.coerce.number().positive('Argamassa deve ser maior que zero'),
-  espessuraCM: z.coerce.number().positive('Espessura deve ser maior que zero'),
 })
 
 export const torreSchema = z.object({

@@ -1,16 +1,13 @@
 "use client"
 
-import type React from "react"
-
 import { useActionState, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { createObraAction, type ActionState } from "../actions"
+import { createObraAction } from "../actions"
 import { TorresForm } from "./torres-form"
 
 interface Torre {
@@ -24,7 +21,6 @@ interface Pavimento {
   identificador: string
   areaM2: number
   argamassaM3: number
-  espessuraCM: number
 }
 
 export default function NovaObraPage() {
@@ -36,7 +32,7 @@ export default function NovaObraPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="flex-1 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="ghost" size="sm" asChild>
@@ -88,20 +84,22 @@ export default function NovaObraPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="endereco">Endereço</Label>
-              <Textarea
-                id="endereco"
-                name="endereco"
-                placeholder="Digite o endereço completo"
-                required
-              />
-              {state.fieldErrors?.endereco && (
-                <p className="text-sm text-red-500">{state.fieldErrors.endereco[0]}</p>
-              )}
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="valorM2">Valor por m²</Label>
+                <Input
+                  id="valorM2"
+                  name="valorM2"
+                  type="number"
+                  placeholder="0.00"
+                  step="0.01"
+                  required
+                />
+                {state.fieldErrors?.valorM2 && (
+                  <p className="text-sm text-red-500">{state.fieldErrors.valorM2[0]}</p>
+                )}
+              </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="dataInicio">Data de Início</Label>
                 <Input
@@ -127,26 +125,38 @@ export default function NovaObraPage() {
                 )}
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="valorM2">Valor por m²</Label>
-              <Input
-                id="valorM2"
-                name="valorM2"
-                type="number"
-                placeholder="0.00"
-                step="0.01"
-                required
-              />
-              {state.fieldErrors?.valorM2 && (
-                <p className="text-sm text-red-500">{state.fieldErrors.valorM2[0]}</p>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="construtora">Contrutora</Label>
+                <Input
+                  id="construtora"
+                  name="construtora"
+                  type="text"
+                  placeholder="Digite o nome da construtora"
+                  required
+                />
+                {state.fieldErrors?.construtora && (
+                  <p className="text-sm text-red-500">{state.fieldErrors.construtora[0]}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="endereco">Localidade</Label>
+                <Input
+                  id="endereco"
+                  name="endereco"
+                  placeholder="Digite o endereço completo"
+                  required
+                />
+                {state.fieldErrors?.endereco && (
+                  <p className="text-sm text-red-500">{state.fieldErrors.endereco[0]}</p>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        <TorresForm 
-          torres={torres} 
+        <TorresForm
+          torres={torres}
           onChange={handleTorresChange}
           errors={state.fieldErrors}
         />

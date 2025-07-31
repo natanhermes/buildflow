@@ -49,8 +49,8 @@ model Obra {
   dataInicio     DateTime
   dataFim        DateTime
   totalGeral     Decimal
-  totalExecutado Decimal
-  totalPendente  Decimal
+  totalExecutado Decimal?
+  totalPendente  Decimal?
 
   criadoPorId String
   criadoPor   Usuario @relation("UsuarioObras", fields: [criadoPorId], references: [id])
@@ -79,12 +79,12 @@ model Torre {
 model Pavimento {
   id                  String   @id @default(uuid())
   identificador       String
-  dataExecucao        DateTime
-  areaExecutadaM2     Decimal
+  dataExecucao        DateTime?
+  areaExecutadaM2     Decimal?
   areaM2              Decimal
-  percentualExecutado Decimal
+  percentualExecutado Decimal?
   argamassaM3         Decimal
-  espessuraCM         Decimal
+  espessuraCM         Decimal?
   obs                 String?
 
   torreId String

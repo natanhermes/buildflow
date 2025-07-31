@@ -21,7 +21,6 @@ export type CreateObraData = {
       identificador: string
       areaM2: number
       argamassaM3: number
-      espessuraCM: number
     }[]
   }[]
 }
@@ -39,20 +38,14 @@ export async function createObra(data: CreateObraData): Promise<ObraWithRelation
       ...obraData,
       valorM2: new Prisma.Decimal(data.valorM2),
       totalGeral: new Prisma.Decimal(totalGeral),
-      totalExecutado: new Prisma.Decimal(0),
-      totalPendente: new Prisma.Decimal(totalGeral),
       torres: {
         create: torres.map(torre => ({
           nome: torre.nome,
           pavimentos: {
             create: torre.pavimentos.map(pavimento => ({
               identificador: pavimento.identificador,
-              dataExecucao: new Date(), // Valor inicial
-              areaExecutadaM2: new Prisma.Decimal(0),
               areaM2: new Prisma.Decimal(pavimento.areaM2),
-              percentualExecutado: new Prisma.Decimal(0),
               argamassaM3: new Prisma.Decimal(pavimento.argamassaM3),
-              espessuraCM: new Prisma.Decimal(pavimento.espessuraCM),
             }))
           }
         }))

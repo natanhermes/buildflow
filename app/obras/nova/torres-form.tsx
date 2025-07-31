@@ -11,7 +11,6 @@ interface Pavimento {
   identificador: string
   areaM2: number
   argamassaM3: number
-  espessuraCM: number
 }
 
 interface Torre {
@@ -53,7 +52,6 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
             identificador: `Pavimento ${torre.pavimentos.length + 1}`,
             areaM2: 0,
             argamassaM3: 0,
-            espessuraCM: 0,
           }
           return {
             ...torre,
@@ -85,7 +83,7 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
         if (torre.id === torreId) {
           return {
             ...torre,
-            pavimentos: torre.pavimentos.map((pav) => 
+            pavimentos: torre.pavimentos.map((pav) =>
               pav.id === pavimentoId ? { ...pav, [field]: value } : pav
             ),
           }
@@ -128,19 +126,19 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    type="button" 
-                    onClick={() => adicionarPavimento(torre.id)} 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    onClick={() => adicionarPavimento(torre.id)}
+                    variant="outline"
                     size="sm"
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     Pavimento
                   </Button>
-                  <Button 
-                    type="button" 
-                    onClick={() => removerTorre(torre.id)} 
-                    variant="destructive" 
+                  <Button
+                    type="button"
+                    onClick={() => removerTorre(torre.id)}
+                    variant="destructive"
                     size="sm"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -156,7 +154,7 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
                   </p>
                 )}
                 {torre.pavimentos.map((pavimento, pavIndex) => (
-                  <div key={pavimento.id} className="grid grid-cols-5 gap-2 p-2 border rounded">
+                  <div key={pavimento.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 p-2 border rounded">
                     <div className="space-y-1">
                       <Label htmlFor={`pav-id-${pavimento.id}`} className="text-xs">
                         Identificador
@@ -197,21 +195,7 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
                         step="0.01"
                       />
                     </div>
-                    <div className="space-y-1">
-                      <Label htmlFor={`pav-espessura-${pavimento.id}`} className="text-xs">
-                        Espessura (cm)
-                      </Label>
-                      <Input
-                        id={`pav-espessura-${pavimento.id}`}
-                        name={`torres.${torreIndex}.pavimentos.${pavIndex}.espessuraCM`}
-                        type="number"
-                        value={pavimento.espessuraCM}
-                        onChange={(e) => atualizarPavimento(torre.id, pavimento.id, "espessuraCM", Number(e.target.value) || 0)}
-                        placeholder="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <div className="flex items-end">
+                    <div className="flex items-end ">
                       <Button
                         type="button"
                         onClick={() => removerPavimento(torre.id, pavimento.id)}
