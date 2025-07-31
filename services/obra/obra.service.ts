@@ -28,10 +28,12 @@ export type CreateObraData = {
 export async function createObra(data: CreateObraData): Promise<ObraWithRelations> {
   const { torres, ...obraData } = data
 
-  // Calcular totais baseados nos pavimentos
-  const totalGeral = torres.reduce((total, torre) => 
-    total + torre.pavimentos.reduce((torreTotal, pav) => 
-      torreTotal + (pav.areaM2 * data.valorM2), 0), 0)
+  const totalGeral = torres.reduce(
+    (total, torre) =>
+      total +
+      torre.pavimentos.reduce((torreTotal, pav) => torreTotal + pav.areaM2, 0),
+    0
+  )
 
   const obra = await db.obra.create({
     data: {

@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, MapPin, Calendar, DollarSign } from "lucide-react"
+import { Building2, MapPin, Calendar, Scan } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { type ObraWithRelations } from "@/services/obra/obra.service"
+import { formatNumber } from "@/lib/utils"
 
 interface ObraCardProps {
   obra: ObraWithRelations
@@ -35,15 +36,15 @@ export function ObraCard({ obra, onViewDetails }: ObraCardProps) {
             {format(obra.dataFim, "dd/MM/yyyy", { locale: ptBR })}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <DollarSign className="h-4 w-4" />
-            R$ {Number(obra.valorM2).toLocaleString()}/m²
+            <Scan className="h-4 w-4" />
+            {formatNumber(Number(obra.valorM2))}/m²
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 pt-4 border-t">
           <div>
             <p className="text-sm font-medium">Total Geral</p>
-            <p className="text-2xl font-bold">R$ {Number(obra.totalGeral).toLocaleString()}</p>
+            <p className="text-2xl font-bold">{formatNumber(Number(obra.totalGeral), 0, 0)} m²</p>
           </div>
           <div>
             <p className="text-sm font-medium">Torres</p>

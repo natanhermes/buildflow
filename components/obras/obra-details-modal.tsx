@@ -1,15 +1,19 @@
+"use client"
+
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Building2, MapPin, Calendar, DollarSign, FileText, Users, Activity } from "lucide-react"
+import { Building2, MapPin, Calendar, DollarSign, Layers } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { type ObraWithRelations } from "@/services/obra/obra.service"
+import { ObraWithRelations } from "@/services/obra/obra.service"
+import { formatCurrency, formatNumber } from "@/lib/utils"
 
 interface ObraDetailsModalProps {
   obra: ObraWithRelations | null
@@ -18,118 +22,179 @@ interface ObraDetailsModalProps {
 }
 
 export function ObraDetailsModal({ obra, open, onOpenChange }: ObraDetailsModalProps) {
-  if (!obra) return null
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            {obra.nome}
+            {obra?.nome || "Detalhes da Obra"}
           </DialogTitle>
+          <DialogDescription>
+            Informações completas da obra e seus relacionamentos
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Informações Básicas */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Informações Básicas</h3>
-              <Badge variant="outline">Ativa</Badge>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">CEI:</span>
-                  <span>{obra.cei}</span>
+        {obra && (
+          <div className="space-y-6">
+            {/* Informações Básicas */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações Básicas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Nome:</span>
+                    <span>{obra.nome}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="font-medium">CEI:</span>
+                    <Badge variant="outline">{obra.cei}</Badge>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Valor/m²:</span>
+                    <span>{formatCurrency(Number(obra.valorM2))}</span>
+                  </div>
                 </div>
+
                 <div className="flex items-start gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <span className="font-medium">Endereço:</span>
-                  <span className="flex-1">{obra.endereco}</span>
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <div className="flex gap-2">
+                    <span className="font-medium">Localidade:</span>
+                    <p className="text-muted-foreground">{obra.endereco}</p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-2">
+
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Período:</span>
                   <span>
-                    {format(obra.dataInicio, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                    {format(obra.dataFim, "dd/MM/yyyy", { locale: ptBR })}
+                    {format(new Date(obra.dataInicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                    {format(new Date(obra.dataFim), "dd/MM/yyyy", { locale: ptBR })}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Valor/m²:</span>
-                  <span>R$ {Number(obra.valorM2).toLocaleString()}</span>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Andamento da Obra</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm font-medium text-blue-600">Total Geral</p>
+                    <p className="text-2xl font-bold text-blue-800">
+                      {formatNumber(Number(obra.totalGeral))} m²
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-sm font-medium text-green-600">Executado</p>
+                    <p className="text-2xl font-bold text-green-800">
+                      {formatNumber(Number(obra.totalExecutado))} m²
+                    </p>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <p className="text-sm font-medium text-orange-600">Pendente</p>
+                    <p className="text-2xl font-bold text-orange-800">
+                      {formatNumber(Number(obra.totalGeral) - Number(obra.totalExecutado ?? 0))} m²
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+
+            {/* Estatísticas */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Layers className="h-5 w-5" />
+                  Estatísticas da Obra
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{obra.torres.length}</p>
+                    <p className="text-sm text-muted-foreground">{obra.torres.length > 1 ? 'Torres' : 'Torre'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{obra.torres.reduce((total, torre) => total + torre.pavimentos.length, 0)}</p>
+                    <p className="text-sm text-muted-foreground">{obra.torres.reduce((total, torre) => total + torre.pavimentos.length, 0) > 1 ? 'Pavimentos' : 'Pavimento'}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">
+                      {Math.round((Number(obra.totalExecutado ?? 0) / Number(obra.totalGeral)) * 100)}%
+                    </p>
+                    <p className="text-sm text-muted-foreground">Progresso</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">
+                      {formatNumber(Number(obra.totalGeral))}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Total m²</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Torres e Pavimentos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Torres e Pavimentos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {obra.torres.map((torre, index) => (
+                  <Card key={torre.id} className="border-l-4 border-l-blue-500">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center justify-between">
+                        <span>{torre.nome}</span>
+                        <Badge variant="secondary">
+                          {torre.pavimentos.length} pavimento(s)
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {torre.pavimentos.length > 0 ? (
+                        <div className="space-y-2">
+                          {torre.pavimentos.map((pavimento) => (
+                            <div key={pavimento.id} className="grid grid-cols-2 md:grid-cols-5 gap-2 p-3 bg-gray-50 rounded-lg text-sm">
+                              <div>
+                                <p className="font-medium">{pavimento.identificador}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Área</p>
+                                <p className="font-medium">{formatNumber(Number(pavimento.areaM2))} m²</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Argamassa</p>
+                                <p className="font-medium">{formatNumber(Number(pavimento.argamassaM3))} m³</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Espessura</p>
+                                <p className="font-medium">{formatNumber(Number(pavimento.espessuraCM))} cm</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Progresso</p>
+                                <p className="font-medium">{formatNumber(Number(pavimento.percentualExecutado))}%</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-muted-foreground italic">Nenhum pavimento cadastrado</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </CardContent>
+            </Card>
           </div>
-
-          <Separator />
-
-          {/* Totais */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Totais da Obra</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-muted/50 p-4 rounded-lg text-center">
-                <p className="text-sm font-medium text-muted-foreground">Total Executado</p>
-                <p className="text-3xl font-bold">R$ {Number(obra.totalExecutado).toLocaleString()}</p>
-              </div>
-              <div className="bg-muted/50 p-4 rounded-lg text-center">
-                <p className="text-sm font-medium text-muted-foreground">Total Pendente</p>
-                <p className="text-3xl font-bold">R$ {Number(obra.totalPendente).toLocaleString()}</p>
-              </div>
-            </div>
-            <div className="bg-primary/10 p-4 rounded-lg text-center">
-              <p className="text-sm font-medium text-muted-foreground">Valor Total Geral</p>
-              <p className="text-2xl font-bold text-primary">
-                R$ {Number(obra.totalGeral).toLocaleString()}
-              </p>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Estatísticas */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Estatísticas</h3>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-3 border rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Building2 className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium">Torres</span>
-                </div>
-                <p className="text-xl font-bold">{obra.torres?.length || 0}</p>
-              </div>
-              <div className="text-center p-3 border rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Users className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium">Pavimentos</span>
-                </div>
-                <p className="text-xl font-bold">
-                  {obra.torres?.reduce((total, torre) => total + (torre.pavimentos?.length || 0), 0) || 0}
-                </p>
-              </div>
-              <div className="text-center p-3 border rounded-lg">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <DollarSign className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-medium">Progresso</span>
-                </div>
-                <p className="text-xl font-bold">
-                  {obra.totalGeral && Number(obra.totalGeral) > 0 
-                    ? Math.round((Number(obra.totalExecutado) / Number(obra.totalGeral)) * 100)
-                    : 0}%
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   )
-}
+} 

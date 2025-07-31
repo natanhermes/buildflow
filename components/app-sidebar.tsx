@@ -18,31 +18,31 @@ import {
 } from "@/components/ui/sidebar"
 
 const menuItems = [
-  {
-    title: "Dashboard",
-    url: "/",
-    icon: Home,
-  },
+  // {
+  //   title: "Dashboard",
+  //   url: "/",
+  //   icon: Home,
+  // },
   {
     title: "Obras",
     url: "/obras",
     icon: Building2,
   },
-  {
-    title: "Atividades",
-    url: "/atividades",
-    icon: Activity,
-  },
-  {
-    title: "Equipes",
-    url: "/equipes",
-    icon: Users,
-  },
-  {
-    title: "Relatórios",
-    url: "/relatorios",
-    icon: BarChart3,
-  },
+  // {
+  //   title: "Atividades",
+  //   url: "/atividades",
+  //   icon: Activity,
+  // },
+  // {
+  //   title: "Equipes",
+  //   url: "/equipes",
+  //   icon: Users,
+  // },
+  // {
+  //   title: "Relatórios",
+  //   url: "/relatorios",
+  //   icon: BarChart3,
+  // },
 ]
 
 const quickActions = [
@@ -51,11 +51,11 @@ const quickActions = [
     url: "/obras/nova",
     icon: Building2,
   },
-  {
-    title: "Nova Atividade",
-    url: "/atividades/nova",
-    icon: Activity,
-  },
+  // {
+  //   title: "Nova Atividade",
+  //   url: "/atividades/nova",
+  //   icon: Activity,
+  // },
 ]
 
 export function AppSidebar() {
