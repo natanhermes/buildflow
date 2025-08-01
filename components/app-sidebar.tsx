@@ -28,15 +28,15 @@ const menuItems = [
     url: "/obras",
     icon: Building2,
   },
+  {
+    title: "Equipes",
+    url: "/equipes",
+    icon: Users,
+  },
   // {
   //   title: "Atividades",
   //   url: "/atividades",
   //   icon: Activity,
-  // },
-  // {
-  //   title: "Equipes",
-  //   url: "/equipes",
-  //   icon: Users,
   // },
   // {
   //   title: "Relatórios",
@@ -50,6 +50,11 @@ const quickActions = [
     title: "Nova Obra",
     url: "/obras/nova",
     icon: Building2,
+  },
+  {
+    title: "Nova Equipe",
+    url: "/equipes/nova",
+    icon: Users,
   },
   // {
   //   title: "Nova Atividade",
