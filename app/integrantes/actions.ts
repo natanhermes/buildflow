@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
-import { createIntegrante } from '@/services/integrante/integrante.service'
+import { createIntegrante, checkCpfExists } from '@/services/integrante/integrante.service'
 import { integranteSchema, type IntegranteFormData } from '@/lib/validations/integrante'
 import { revalidatePath } from 'next/cache'
 
@@ -35,6 +35,15 @@ export async function createIntegranteAction(
 
     const validatedData = result.data
 
+    const cpfExists = await checkCpfExists(validatedData.cpf)
+    if (cpfExists) {
+      return {
+        fieldErrors: {
+          cpf: ['CPF já cadastrado no sistema']
+        }
+      }
+    }
+
     await createIntegrante(validatedData)
 
     revalidatePath('/integrantes')
@@ -50,6 +59,6 @@ export async function createIntegranteAction(
 function extractFormData(formData: FormData): IntegranteFormData {
   return {
     nome: formData.get('nome') as string,
-    equipeId: formData.get('equipeId') as string,
+    cpf: formData.get('cpf') as string,
   }
 } 
