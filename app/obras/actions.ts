@@ -45,9 +45,14 @@ export async function createObraAction(
     }
 
     await createObra({
-      ...validatedData,
+      nome: validatedData.nome,
+      cei: validatedData.cei,
+      construtora: validatedData.construtora,
+      endereco: validatedData.endereco,
+      valorM2: validatedData.valorM2,
       dataInicio: new Date(validatedData.dataInicio),
       dataFim: new Date(validatedData.dataFim),
+      torres: validatedData.torres,
       criadoPorId: session.user.id,
     })
 
@@ -90,7 +95,16 @@ function extractFormData(formData: FormData): ObraFormData {
   return {
     nome: formData.get('nome') as string,
     cei: formData.get('cei') as string,
-    endereco: formData.get('endereco') as string,
+    construtora: formData.get('construtora') as string,
+    endereco: {
+      cep: formData.get('endereco.cep') as string,
+      logradouro: formData.get('endereco.logradouro') as string,
+      numero: formData.get('endereco.numero') as string,
+      complemento: formData.get('endereco.complemento') as string || undefined,
+      bairro: formData.get('endereco.bairro') as string,
+      cidade: formData.get('endereco.cidade') as string,
+      estado: formData.get('endereco.estado') as string,
+    },
     valorM2: Number(formData.get('valorM2')) || 0,
     dataInicio: formData.get('dataInicio') as string,
     dataFim: formData.get('dataFim') as string,

@@ -1,7 +1,6 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useObras } from '@/hooks/obras/use-obras'
 import { ObraCard } from './obra-card'
 import { ObraDetailsModal } from './obra-details-modal'
 import { EmptyState } from './empty-state'
@@ -42,7 +41,6 @@ export function ObrasList() {
 	return (
 		<>
 			<Suspense fallback={<LoadingState />}>
-
 				<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 					{obras.map((obra) => (
 						<ObraCard
