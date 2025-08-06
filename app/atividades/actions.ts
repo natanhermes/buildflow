@@ -42,6 +42,8 @@ export async function createAtividadeAction(
       inicioAlmoco: validatedData.inicioAlmoco ? new Date(`1970-01-01T${validatedData.inicioAlmoco}:00`) : undefined,
       fimAlmoco: validatedData.fimAlmoco ? new Date(`1970-01-01T${validatedData.fimAlmoco}:00`) : undefined,
       fimExpediente: validatedData.fimExpediente ? new Date(`1970-01-01T${validatedData.fimExpediente}:00`) : undefined,
+      dataExecucao: new Date(validatedData.dataExecucao),
+      areaExecutadaM2: validatedData.areaExecutadaM2,
     })
 
     revalidatePath('/atividades')
@@ -99,6 +101,13 @@ function extractFormData(formData: FormData): AtividadeFormData {
 
   const obsHOI = formData.get('obsHOI') as string
   if (obsHOI) data.obsHOI = obsHOI
+
+  // Campos do pavimento
+  const dataExecucao = formData.get('dataExecucao') as string
+  if (dataExecucao) data.dataExecucao = dataExecucao
+
+  const areaExecutadaM2 = formData.get('areaExecutadaM2') as string
+  if (areaExecutadaM2) data.areaExecutadaM2 = Number(areaExecutadaM2)
 
   return data
 }

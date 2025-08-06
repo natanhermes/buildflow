@@ -65,6 +65,9 @@ export type CreateAtividadeData = {
   usuarioId: string
   obraId: string
   pavimentoId: string
+  // Campos do pavimento
+  dataExecucao: Date
+  areaExecutadaM2: number
 }
 
 export async function createAtividade(data: CreateAtividadeData): Promise<AtividadeWithRelations> {
@@ -91,22 +94,61 @@ export async function createAtividade(data: CreateAtividadeData): Promise<Ativid
   // Calcular o saldo acumulado
   const saldoAcumulado = await calculateSaldoAcumulado(data.pavimentoId, pavimento.areaM2)
 
-  const { integranteIds, ...atividadeData } = data
+  // Calcular percentual executado e espessura
+  const percentualExecutado = (data.areaExecutadaM2 / Number(pavimento.areaM2)) * 100
+  const espessuraCM = (Number(pavimento.argamassaM3) / data.areaExecutadaM2) * 100
 
-  const atividade = await db.atividade.create({
-    data: {
-      ...atividadeData,
-      aditivoM3: data.aditivoM3 ? new Prisma.Decimal(data.aditivoM3) : null,
-      aditivoL: data.aditivoL ? new Prisma.Decimal(data.aditivoL) : null,
-      saldoAcumuladoM2: new Prisma.Decimal(saldoAcumulado),
-      atividadeIntegrantes: {
-        create: data.integranteIds.map(integranteId => ({
-          integranteId
-        }))
-      }
-    },
-    include: ATIVIDADE_INCLUDE
-  })
+  // Preparar dados para a transação
+  const { integranteIds, dataExecucao, areaExecutadaM2, ...atividadeData } = data
+  const atividadeCreateData = {
+    ...atividadeData,
+    aditivoM3: data.aditivoM3 ? new Prisma.Decimal(data.aditivoM3) : null,
+    aditivoL: data.aditivoL ? new Prisma.Decimal(data.aditivoL) : null,
+    saldoAcumuladoM2: new Prisma.Decimal(saldoAcumulado),
+    atividadeIntegrantes: {
+      create: data.integranteIds.map(integranteId => ({
+        integranteId
+      }))
+    }
+  }
+  
+  const pavimentoUpdateData = {
+    dataExecucao: data.dataExecucao,
+    areaExecutadaM2: new Prisma.Decimal(data.areaExecutadaM2),
+    percentualExecutado: new Prisma.Decimal(percentualExecutado),
+    espessuraCM: new Prisma.Decimal(espessuraCM),
+  }
+
+  // Usar transação otimizada para criar atividade e atualizar pavimento
+  let result
+  try {
+    result = await db.$transaction(async (tx) => {
+      // Criar a atividade
+      const atividade = await tx.atividade.create({
+        data: atividadeCreateData,
+        include: ATIVIDADE_INCLUDE
+      })
+
+      // Atualizar o pavimento
+      await tx.pavimento.update({
+        where: { id: data.pavimentoId },
+        data: pavimentoUpdateData
+      })
+
+      return atividade
+    }, {
+      timeout: 15000, // 15 segundos de timeout
+    })
+  } catch (error: any) {
+    // Tratamento específico para timeout de transação
+    if (error.code === 'P2028') {
+      throw new Error('Operação demorou mais que o esperado. Tente novamente.')
+    }
+    // Re-lançar outros erros
+    throw error
+  }
+
+  const atividade = result
 
   // Converter Decimal para number para compatibilidade com componentes cliente
   return {
@@ -362,9 +404,10 @@ export async function deleteAtividade(id: string): Promise<void> {
 
 // Função para calcular o saldo acumulado
 async function calculateSaldoAcumulado(pavimentoId: string, areaM2Pavimento: Prisma.Decimal): Promise<number> {
-  // Buscar a última atividade do pavimento
+  // Buscar a última atividade do pavimento com select otimizado
   const ultimaAtividade = await db.atividade.findFirst({
     where: { pavimentoId },
+    select: { saldoAcumuladoM2: true },
     orderBy: { createdAt: 'desc' }
   })
 
@@ -395,6 +438,7 @@ export async function findPavimentosByObra(obraId: string): Promise<{
   id: string
   identificador: string
   areaM2: string
+  argamassaM3: string
   torre: { id: string; nome: string }
 }[]> {
   const pavimentos = await db.pavimento.findMany({
@@ -407,6 +451,7 @@ export async function findPavimentosByObra(obraId: string): Promise<{
       id: true,
       identificador: true,
       areaM2: true,
+      argamassaM3: true,
       torre: {
         select: {
           id: true,
@@ -422,6 +467,7 @@ export async function findPavimentosByObra(obraId: string): Promise<{
 
   return pavimentos.map(p => ({
     ...p,
-    areaM2: p.areaM2.toString()
+    areaM2: p.areaM2.toString(),
+    argamassaM3: p.argamassaM3.toString()
   }))
 }

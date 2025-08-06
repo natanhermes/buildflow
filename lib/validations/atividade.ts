@@ -17,7 +17,25 @@ export const atividadeSchema = z.object({
   integranteIds: z.array(z.string()).min(1, 'Pelo menos um integrante é obrigatório'),
   obraId: z.string().min(1, 'Obra é obrigatória'),
   pavimentoId: z.string().min(1, 'Pavimento é obrigatório'),
+  // Campos do pavimento
+  dataExecucao: z.string().min(1, 'Data de execução é obrigatória'),
+  areaExecutadaM2: z.coerce.number().min(0.01, 'Área executada deve ser maior que zero'),
 }).refine(
+  (data) => {
+    // Validação da data de execução não pode ser no futuro
+    if (data.dataExecucao) {
+      const dataExec = new Date(data.dataExecucao)
+      const hoje = new Date()
+      hoje.setHours(23, 59, 59, 999) // Final do dia atual
+      return dataExec <= hoje
+    }
+    return true
+  },
+  {
+    message: 'Data de execução não pode ser no futuro',
+    path: ['dataExecucao'],
+  }
+).refine(
   (data) => {
     // Se inicioExpediente está preenchido, deve ser anterior ao fimExpediente
     if (data.inicioExpediente && data.fimExpediente) {
