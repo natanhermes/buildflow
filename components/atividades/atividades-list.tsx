@@ -1,114 +1,123 @@
-import { findAllAtividades } from '@/services/atividades/atividade.service'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { format } from "date-fns"
-import { ptBR } from "date-fns/locale"
+'use client'
 
-export async function AtividadesList() {
-  const atividades = await findAllAtividades()
+import { Suspense, useState } from 'react'
+import { useAtividades, type SerializedAtividadeWithRelations } from '@/hooks/atividades/use-atividades'
+import { AtividadeModal } from './atividade-modal'
+import { EmptyState } from './empty-state'
+import { LoadingState } from './loading-state'
+import { ErrorState } from './error-state'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+
+export function AtividadesList() {
+  const { data: atividades, isLoading, error, refetch } = useAtividades()
+  const [selectedAtividade, setSelectedAtividade] = useState<SerializedAtividadeWithRelations | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  const handleViewDetails = (atividade: SerializedAtividadeWithRelations) => {
+    setSelectedAtividade(atividade)
+    setIsModalOpen(true)
+  }
+
+  const getStatusVariant = (execucao: string | null) => {
+    if (!execucao) return 'secondary'
+    
+    const status = execucao.toLowerCase()
+    if (status.includes('concluído') || status.includes('concluida')) return 'default'
+    if (status.includes('andamento') || status.includes('executando')) return 'outline'
+    if (status.includes('pendente') || status.includes('aguardando')) return 'secondary'
+    return 'secondary'
+  }
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-'
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy', { locale: ptBR })
+    } catch {
+      return '-'
+    }
+  }
+
+  const handleCloseModal = (open: boolean) => {
+    setIsModalOpen(open)
+    if (!open) {
+      setSelectedAtividade(null)
+    }
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        message="Erro ao carregar atividades"
+        onRetry={() => refetch()}
+      />
+    )
+  }
+
+  if (!atividades || atividades.length === 0) {
+    return <EmptyState />
+  }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Lista de Atividades</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {atividades.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Nenhuma atividade encontrada.</p>
-            <p className="text-sm">Clique em "Nova Atividade" para adicionar a primeira atividade.</p>
+    <>
+      <Suspense fallback={<LoadingState />}>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {atividades.length} atividade(s) encontrada(s)
+            </p>
           </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Obra</TableHead>
-                <TableHead>Pavimento</TableHead>
-                <TableHead>Integrante</TableHead>
-                <TableHead>Execução</TableHead>
-                <TableHead>Saldo Acumulado</TableHead>
-                <TableHead>Aditivos</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {atividades.map((atividade) => (
-                <TableRow key={atividade.id}>
-                  <TableCell className="font-medium">
-                    {format(atividade.createdAt, "dd/MM/yyyy", { locale: ptBR })}
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{atividade.obra.nome}</p>
-                      <p className="text-sm text-muted-foreground">{atividade.obra.cei}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{atividade.pavimento.torre.nome}</p>
-                      <p className="text-sm text-muted-foreground">{atividade.pavimento.identificador}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {atividade.atividadeIntegrantes.slice(0, 2).map((ai) => (
-                        <div key={ai.integrante.id} className="text-sm">
-                          {ai.integrante.nome}
-                        </div>
-                      ))}
-                      {atividade.atividadeIntegrantes.length > 2 && (
-                        <div className="text-xs text-muted-foreground">
-                          +{atividade.atividadeIntegrantes.length - 2} outros
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {atividade.execucao && (
-                      <Badge variant={
-                        atividade.execucao === 'EXECUTADO' ? 'default' :
-                        atividade.execucao === 'FINAL' ? 'secondary' :
-                        'outline'
-                      }>
-                        {atividade.execucao === 'EXECUTADO' ? 'Executado' :
-                         atividade.execucao === 'INICIAL' ? 'Inicial' :
-                         atividade.execucao === 'MEIO' ? 'Em andamento' :
-                         atividade.execucao === 'FINAL' ? 'Final' : atividade.execucao}
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {atividade.saldoAcumuladoM2 ? (
-                      <span className="font-mono">{Number(atividade.saldoAcumuladoM2).toFixed(2)}m²</span>
-                    ) : (
-                      '-'
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {atividade.aditivoM3 && (
-                        <div>{Number(atividade.aditivoM3).toFixed(2)}m³</div>
-                      )}
-                      {atividade.aditivoL && (
-                        <div>{Number(atividade.aditivoL).toFixed(2)}L</div>
-                      )}
-                      {!atividade.aditivoM3 && !atividade.aditivoL && '-'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="outline" size="sm">
-                      Editar
-                    </Button>
-                  </TableCell>
+          
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Obra</TableHead>
+                  <TableHead>Torre</TableHead>
+                  <TableHead>Pavimento</TableHead>
+                  <TableHead>Data Execução</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {atividades.map((atividade) => (
+                  <TableRow
+                    key={atividade.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleViewDetails(atividade)}
+                  >
+                    <TableCell className="font-medium">
+                      {atividade.obra.nome}
+                    </TableCell>
+                    <TableCell>
+                      {atividade.pavimento.torre.nome}
+                    </TableCell>
+                    <TableCell>
+                      {atividade.pavimento.identificador}
+                    </TableCell>
+                    <TableCell>
+                      {formatDate(atividade.pavimento.dataExecucao)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(atividade.execucao)}>
+                        {atividade.execucao || 'Não informado'}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </Suspense>
+
+      <AtividadeModal
+        atividade={selectedAtividade}
+        open={isModalOpen}
+        onOpenChange={handleCloseModal}
+      />
+    </>
   )
 }

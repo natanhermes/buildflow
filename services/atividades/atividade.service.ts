@@ -1,13 +1,26 @@
 import db from '@/lib/db'
 import { Atividade, Integrante, Obra, Pavimento, Usuario, Execucao, Prisma } from '@prisma/client'
 
-export type AtividadeWithRelations = Atividade & {
+export type AtividadeWithRelations = Omit<Atividade, 'aditivoM3' | 'aditivoL' | 'saldoAcumuladoM2'> & {
+  aditivoM3: number | null
+  aditivoL: number | null
+  saldoAcumuladoM2: number | null
   atividadeIntegrantes: {
     integrante: Integrante
   }[]
   usuario: Usuario
-  obra: Obra
-  pavimento: Pavimento & {
+  obra: Omit<Obra, 'valorM2' | 'totalGeral' | 'totalExecutado' | 'totalPendente'> & {
+    valorM2: number
+    totalGeral: number
+    totalExecutado: number | null
+    totalPendente: number | null
+  }
+  pavimento: Omit<Pavimento, 'areaM2' | 'areaExecutadaM2' | 'percentualExecutado' | 'argamassaM3' | 'espessuraCM'> & {
+    areaM2: number
+    areaExecutadaM2: number | null
+    percentualExecutado: number | null
+    argamassaM3: number
+    espessuraCM: number | null
     torre: {
       id: string
       nome: string
@@ -95,41 +108,156 @@ export async function createAtividade(data: CreateAtividadeData): Promise<Ativid
     include: ATIVIDADE_INCLUDE
   })
 
-  return atividade
+  // Converter Decimal para number para compatibilidade com componentes cliente
+  return {
+    ...atividade,
+    aditivoM3: atividade.aditivoM3 ? Number(atividade.aditivoM3) : null,
+    aditivoL: atividade.aditivoL ? Number(atividade.aditivoL) : null,
+    saldoAcumuladoM2: atividade.saldoAcumuladoM2 ? Number(atividade.saldoAcumuladoM2) : null,
+    obra: {
+      ...atividade.obra,
+      valorM2: Number(atividade.obra.valorM2),
+      totalGeral: Number(atividade.obra.totalGeral),
+      totalExecutado: atividade.obra.totalExecutado ? Number(atividade.obra.totalExecutado) : null,
+      totalPendente: atividade.obra.totalPendente ? Number(atividade.obra.totalPendente) : null,
+    },
+    pavimento: {
+      ...atividade.pavimento,
+      areaM2: Number(atividade.pavimento.areaM2),
+      areaExecutadaM2: atividade.pavimento.areaExecutadaM2 ? Number(atividade.pavimento.areaExecutadaM2) : null,
+      percentualExecutado: atividade.pavimento.percentualExecutado ? Number(atividade.pavimento.percentualExecutado) : null,
+      argamassaM3: Number(atividade.pavimento.argamassaM3),
+      espessuraCM: atividade.pavimento.espessuraCM ? Number(atividade.pavimento.espessuraCM) : null,
+    }
+  }
 }
 
 export async function findAtividadeById(id: string): Promise<AtividadeWithRelations | null> {
-  return await db.atividade.findUnique({
+  const atividade = await db.atividade.findUnique({
     where: { id },
     include: ATIVIDADE_INCLUDE
   })
+
+  if (!atividade) return null
+
+  // Converter Decimal para number para compatibilidade com componentes cliente
+  return {
+    ...atividade,
+    aditivoM3: atividade.aditivoM3 ? Number(atividade.aditivoM3) : null,
+    aditivoL: atividade.aditivoL ? Number(atividade.aditivoL) : null,
+    saldoAcumuladoM2: atividade.saldoAcumuladoM2 ? Number(atividade.saldoAcumuladoM2) : null,
+    obra: {
+      ...atividade.obra,
+      valorM2: Number(atividade.obra.valorM2),
+      totalGeral: Number(atividade.obra.totalGeral),
+      totalExecutado: atividade.obra.totalExecutado ? Number(atividade.obra.totalExecutado) : null,
+      totalPendente: atividade.obra.totalPendente ? Number(atividade.obra.totalPendente) : null,
+    },
+    pavimento: {
+      ...atividade.pavimento,
+      areaM2: Number(atividade.pavimento.areaM2),
+      areaExecutadaM2: atividade.pavimento.areaExecutadaM2 ? Number(atividade.pavimento.areaExecutadaM2) : null,
+      percentualExecutado: atividade.pavimento.percentualExecutado ? Number(atividade.pavimento.percentualExecutado) : null,
+      argamassaM3: Number(atividade.pavimento.argamassaM3),
+      espessuraCM: atividade.pavimento.espessuraCM ? Number(atividade.pavimento.espessuraCM) : null,
+    }
+  }
 }
 
 export async function findAllAtividades(): Promise<AtividadeWithRelations[]> {
-  return await db.atividade.findMany({
+  const atividades = await db.atividade.findMany({
     include: ATIVIDADE_INCLUDE,
     orderBy: { createdAt: 'desc' }
   })
+
+  // Converter Decimal para number para compatibilidade com componentes cliente
+  return atividades.map(atividade => ({
+    ...atividade,
+    aditivoM3: atividade.aditivoM3 ? Number(atividade.aditivoM3) : null,
+    aditivoL: atividade.aditivoL ? Number(atividade.aditivoL) : null,
+    saldoAcumuladoM2: atividade.saldoAcumuladoM2 ? Number(atividade.saldoAcumuladoM2) : null,
+    obra: {
+      ...atividade.obra,
+      valorM2: Number(atividade.obra.valorM2),
+      totalGeral: Number(atividade.obra.totalGeral),
+      totalExecutado: atividade.obra.totalExecutado ? Number(atividade.obra.totalExecutado) : null,
+      totalPendente: atividade.obra.totalPendente ? Number(atividade.obra.totalPendente) : null,
+    },
+    pavimento: {
+      ...atividade.pavimento,
+      areaM2: Number(atividade.pavimento.areaM2),
+      areaExecutadaM2: atividade.pavimento.areaExecutadaM2 ? Number(atividade.pavimento.areaExecutadaM2) : null,
+      percentualExecutado: atividade.pavimento.percentualExecutado ? Number(atividade.pavimento.percentualExecutado) : null,
+      argamassaM3: Number(atividade.pavimento.argamassaM3),
+      espessuraCM: atividade.pavimento.espessuraCM ? Number(atividade.pavimento.espessuraCM) : null,
+    }
+  }))
 }
 
 export async function findAtividadesByObra(obraId: string): Promise<AtividadeWithRelations[]> {
-  return await db.atividade.findMany({
+  const atividades = await db.atividade.findMany({
     where: { obraId },
     include: ATIVIDADE_INCLUDE,
     orderBy: { createdAt: 'desc' }
   })
+
+  // Converter Decimal para number para compatibilidade com componentes cliente
+  return atividades.map(atividade => ({
+    ...atividade,
+    aditivoM3: atividade.aditivoM3 ? Number(atividade.aditivoM3) : null,
+    aditivoL: atividade.aditivoL ? Number(atividade.aditivoL) : null,
+    saldoAcumuladoM2: atividade.saldoAcumuladoM2 ? Number(atividade.saldoAcumuladoM2) : null,
+    obra: {
+      ...atividade.obra,
+      valorM2: Number(atividade.obra.valorM2),
+      totalGeral: Number(atividade.obra.totalGeral),
+      totalExecutado: atividade.obra.totalExecutado ? Number(atividade.obra.totalExecutado) : null,
+      totalPendente: atividade.obra.totalPendente ? Number(atividade.obra.totalPendente) : null,
+    },
+    pavimento: {
+      ...atividade.pavimento,
+      areaM2: Number(atividade.pavimento.areaM2),
+      areaExecutadaM2: atividade.pavimento.areaExecutadaM2 ? Number(atividade.pavimento.areaExecutadaM2) : null,
+      percentualExecutado: atividade.pavimento.percentualExecutado ? Number(atividade.pavimento.percentualExecutado) : null,
+      argamassaM3: Number(atividade.pavimento.argamassaM3),
+      espessuraCM: atividade.pavimento.espessuraCM ? Number(atividade.pavimento.espessuraCM) : null,
+    }
+  }))
 }
 
 export async function findAtividadesByPavimento(pavimentoId: string): Promise<AtividadeWithRelations[]> {
-  return await db.atividade.findMany({
+  const atividades = await db.atividade.findMany({
     where: { pavimentoId },
     include: ATIVIDADE_INCLUDE,
     orderBy: { createdAt: 'desc' }
   })
+
+  // Converter Decimal para number para compatibilidade com componentes cliente
+  return atividades.map(atividade => ({
+    ...atividade,
+    aditivoM3: atividade.aditivoM3 ? Number(atividade.aditivoM3) : null,
+    aditivoL: atividade.aditivoL ? Number(atividade.aditivoL) : null,
+    saldoAcumuladoM2: atividade.saldoAcumuladoM2 ? Number(atividade.saldoAcumuladoM2) : null,
+    obra: {
+      ...atividade.obra,
+      valorM2: Number(atividade.obra.valorM2),
+      totalGeral: Number(atividade.obra.totalGeral),
+      totalExecutado: atividade.obra.totalExecutado ? Number(atividade.obra.totalExecutado) : null,
+      totalPendente: atividade.obra.totalPendente ? Number(atividade.obra.totalPendente) : null,
+    },
+    pavimento: {
+      ...atividade.pavimento,
+      areaM2: Number(atividade.pavimento.areaM2),
+      areaExecutadaM2: atividade.pavimento.areaExecutadaM2 ? Number(atividade.pavimento.areaExecutadaM2) : null,
+      percentualExecutado: atividade.pavimento.percentualExecutado ? Number(atividade.pavimento.percentualExecutado) : null,
+      argamassaM3: Number(atividade.pavimento.argamassaM3),
+      espessuraCM: atividade.pavimento.espessuraCM ? Number(atividade.pavimento.espessuraCM) : null,
+    }
+  }))
 }
 
 export async function findAtividadesByIntegrante(integranteId: string): Promise<AtividadeWithRelations[]> {
-  return await db.atividade.findMany({
+  const atividades = await db.atividade.findMany({
     where: {
       atividadeIntegrantes: {
         some: {
@@ -140,6 +268,29 @@ export async function findAtividadesByIntegrante(integranteId: string): Promise<
     include: ATIVIDADE_INCLUDE,
     orderBy: { createdAt: 'desc' }
   })
+
+  // Converter Decimal para number para compatibilidade com componentes cliente
+  return atividades.map(atividade => ({
+    ...atividade,
+    aditivoM3: atividade.aditivoM3 ? Number(atividade.aditivoM3) : null,
+    aditivoL: atividade.aditivoL ? Number(atividade.aditivoL) : null,
+    saldoAcumuladoM2: atividade.saldoAcumuladoM2 ? Number(atividade.saldoAcumuladoM2) : null,
+    obra: {
+      ...atividade.obra,
+      valorM2: Number(atividade.obra.valorM2),
+      totalGeral: Number(atividade.obra.totalGeral),
+      totalExecutado: atividade.obra.totalExecutado ? Number(atividade.obra.totalExecutado) : null,
+      totalPendente: atividade.obra.totalPendente ? Number(atividade.obra.totalPendente) : null,
+    },
+    pavimento: {
+      ...atividade.pavimento,
+      areaM2: Number(atividade.pavimento.areaM2),
+      areaExecutadaM2: atividade.pavimento.areaExecutadaM2 ? Number(atividade.pavimento.areaExecutadaM2) : null,
+      percentualExecutado: atividade.pavimento.percentualExecutado ? Number(atividade.pavimento.percentualExecutado) : null,
+      argamassaM3: Number(atividade.pavimento.argamassaM3),
+      espessuraCM: atividade.pavimento.espessuraCM ? Number(atividade.pavimento.espessuraCM) : null,
+    }
+  }))
 }
 
 export async function updateAtividade(id: string, data: Partial<CreateAtividadeData>): Promise<AtividadeWithRelations> {
@@ -160,7 +311,7 @@ export async function updateAtividade(id: string, data: Partial<CreateAtividadeD
 
   const { integranteIds, ...updateData } = data
 
-  return await db.atividade.update({
+  const atividade = await db.atividade.update({
     where: { id },
     data: {
       ...updateData,
@@ -178,6 +329,29 @@ export async function updateAtividade(id: string, data: Partial<CreateAtividadeD
     },
     include: ATIVIDADE_INCLUDE
   })
+
+  // Converter Decimal para number para compatibilidade com componentes cliente
+  return {
+    ...atividade,
+    aditivoM3: atividade.aditivoM3 ? Number(atividade.aditivoM3) : null,
+    aditivoL: atividade.aditivoL ? Number(atividade.aditivoL) : null,
+    saldoAcumuladoM2: atividade.saldoAcumuladoM2 ? Number(atividade.saldoAcumuladoM2) : null,
+    obra: {
+      ...atividade.obra,
+      valorM2: Number(atividade.obra.valorM2),
+      totalGeral: Number(atividade.obra.totalGeral),
+      totalExecutado: atividade.obra.totalExecutado ? Number(atividade.obra.totalExecutado) : null,
+      totalPendente: atividade.obra.totalPendente ? Number(atividade.obra.totalPendente) : null,
+    },
+    pavimento: {
+      ...atividade.pavimento,
+      areaM2: Number(atividade.pavimento.areaM2),
+      areaExecutadaM2: atividade.pavimento.areaExecutadaM2 ? Number(atividade.pavimento.areaExecutadaM2) : null,
+      percentualExecutado: atividade.pavimento.percentualExecutado ? Number(atividade.pavimento.percentualExecutado) : null,
+      argamassaM3: Number(atividade.pavimento.argamassaM3),
+      espessuraCM: atividade.pavimento.espessuraCM ? Number(atividade.pavimento.espessuraCM) : null,
+    }
+  }
 }
 
 export async function deleteAtividade(id: string): Promise<void> {

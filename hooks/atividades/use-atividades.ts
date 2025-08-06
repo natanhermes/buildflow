@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query'
 import { type AtividadeWithRelations } from '@/services/atividades/atividade.service'
 import { type SerializedDecimal } from '@/lib/utils/serialization'
 
@@ -81,6 +81,21 @@ export const atividadeQueryKeys = {
   all: ['atividades'] as const,
   lists: () => [...atividadeQueryKeys.all, 'list'] as const,
   byIntegrante: (integranteId: string) => [...atividadeQueryKeys.all, 'integrante', integranteId] as const,
+}
+
+export function useAtividades() {
+  return useSuspenseQuery<SerializedAtividadeWithRelations[]>({
+    queryKey: atividadeQueryKeys.lists(),
+    queryFn: async (): Promise<SerializedAtividadeWithRelations[]> => {
+      const response = await fetch('/api/atividades')
+      
+      if (!response.ok) {
+        throw new Error('Erro ao carregar atividades')
+      }
+      
+      return response.json()
+    },
+  })
 }
 
 export function useAtividadesByIntegrante(integranteId: string) {
