@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import { useActionState } from 'react'
 import { createIntegranteAction, type ActionState } from '@/app/integrantes/actions'
+import { withMask } from 'use-mask-input'
 
 export function IntegranteForm() {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
@@ -40,6 +41,7 @@ export function IntegranteForm() {
               <Input
                 id="cpf"
                 name="cpf"
+                ref={withMask('999.999.999-99')}
                 placeholder="000.000.000-00"
                 required
               />
