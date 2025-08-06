@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge"
 import { Building2, MapPin, Calendar, DollarSign, Layers } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { ObraWithRelations } from "@/services/obra/obra.service"
+import { type SerializedObraWithRelations } from "@/hooks/obras/use-obras"
 import { formatCurrency, formatNumber } from "@/lib/utils"
 
 interface ObraDetailsModalProps {
-  obra: ObraWithRelations | null
+  obra: SerializedObraWithRelations | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -64,7 +64,9 @@ export function ObraDetailsModal({ obra, open, onOpenChange }: ObraDetailsModalP
                   <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                   <div className="flex gap-2">
                     <span className="font-medium">Localidade:</span>
-                    <p className="text-muted-foreground">{obra.endereco}</p>
+                    <p className="text-muted-foreground">
+                      {obra.endereco ? `${obra.endereco.logradouro}, ${obra.endereco.numero} - ${obra.endereco.bairro}, ${obra.endereco.cidade}/${obra.endereco.estado}` : 'Endereço não informado'}
+                    </p>
                   </div>
                 </div>
 
@@ -72,8 +74,12 @@ export function ObraDetailsModal({ obra, open, onOpenChange }: ObraDetailsModalP
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Período:</span>
                   <span>
-                    {format(new Date(obra.dataInicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                    {format(new Date(obra.dataFim), "dd/MM/yyyy", { locale: ptBR })}
+                    {obra.dataInicio && obra.dataFim ? (
+                      <>
+                        {format(new Date(obra.dataInicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                        {format(new Date(obra.dataFim), "dd/MM/yyyy", { locale: ptBR })}
+                      </>
+                    ) : 'Datas não informadas'}
                   </span>
                 </div>
               </CardContent>

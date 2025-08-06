@@ -4,12 +4,12 @@ import { Badge } from "@/components/ui/badge"
 import { Building2, MapPin, Calendar, Scan } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { type ObraWithRelations } from "@/services/obra/obra.service"
+import { type SerializedObraWithRelations } from "@/hooks/obras/use-obras"
 import { formatNumber } from "@/lib/utils"
 
 interface ObraCardProps {
-  obra: ObraWithRelations
-  onViewDetails: (obra: ObraWithRelations) => void
+  obra: SerializedObraWithRelations
+  onViewDetails: (obra: SerializedObraWithRelations) => void
 }
 
 export function ObraCard({ obra, onViewDetails }: ObraCardProps) {
@@ -28,12 +28,16 @@ export function ObraCard({ obra, onViewDetails }: ObraCardProps) {
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MapPin className="h-4 w-4" />
-            {obra.endereco}
+            {obra.endereco ? `${obra.endereco.logradouro}, ${obra.endereco.numero} - ${obra.endereco.bairro}, ${obra.endereco.cidade}/${obra.endereco.estado}` : 'Endereço não informado'}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="h-4 w-4" />
-            {format(obra.dataInicio, "dd/MM/yyyy", { locale: ptBR })} -{" "}
-            {format(obra.dataFim, "dd/MM/yyyy", { locale: ptBR })}
+            {obra.dataInicio && obra.dataFim ? (
+              <>
+                {format(new Date(obra.dataInicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                {format(new Date(obra.dataFim), "dd/MM/yyyy", { locale: ptBR })}
+              </>
+            ) : 'Datas não informadas'}
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Scan className="h-4 w-4" />

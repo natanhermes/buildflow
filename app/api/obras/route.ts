@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { findAllObras } from '@/services/obra/obra.service'
 import { auth } from '@/auth'
+import { serializeObject } from '@/lib/utils/serialization'
 
 export async function GET() {
   try {
@@ -10,7 +11,8 @@ export async function GET() {
     }
 
     const obras = await findAllObras()
-    return NextResponse.json(obras)
+    const serializedObras = serializeObject(obras)
+    return NextResponse.json(serializedObras)
   } catch (error) {
     console.error('Erro ao buscar obras:', error)
     return NextResponse.json(

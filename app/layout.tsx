@@ -10,8 +10,8 @@ import { QueryProvider } from "@/components/query-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "BuildFlow RN",
-  description: "Sistema de gestão de obras civis",
+  title: "TechFlow RN",
+  description: "Otimazação de processos com tecnologia.",
 }
 
 export default function RootLayout({

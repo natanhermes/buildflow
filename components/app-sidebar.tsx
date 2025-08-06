@@ -1,6 +1,6 @@
 "use client"
 
-import { Building2, Home, Users, Activity, BarChart3, Settings, Plus } from "lucide-react"
+import { Building2, Home, Users, Activity, BarChart3, Settings, Plus, UserCheck } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
@@ -28,16 +28,16 @@ const menuItems = [
     url: "/obras",
     icon: Building2,
   },
-  // {
-  //   title: "Atividades",
-  //   url: "/atividades",
-  //   icon: Activity,
-  // },
-  // {
-  //   title: "Equipes",
-  //   url: "/equipes",
-  //   icon: Users,
-  // },
+  {
+    title: "Integrantes",
+    url: "/integrantes",
+    icon: UserCheck,
+  },
+  {
+    title: "Atividades",
+    url: "/atividades",
+    icon: Activity,
+  },
   // {
   //   title: "Relatórios",
   //   url: "/relatorios",
@@ -51,11 +51,16 @@ const quickActions = [
     url: "/obras/nova",
     icon: Building2,
   },
-  // {
-  //   title: "Nova Atividade",
-  //   url: "/atividades/nova",
-  //   icon: Activity,
-  // },
+  {
+    title: "Novo Integrante",
+    url: "/integrantes/novo",
+    icon: UserCheck,
+  },
+  {
+    title: "Nova Atividade",
+    url: "/atividades/nova",
+    icon: Activity,
+  },
 ]
 
 export function AppSidebar() {

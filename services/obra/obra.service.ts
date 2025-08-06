@@ -2,6 +2,15 @@ import db from '@/lib/db'
 import { Obra, Torre, Pavimento, Prisma } from '@prisma/client'
 
 export type ObraWithRelations = Obra & {
+  endereco?: {
+    id: string
+    logradouro: string
+    numero: string
+    complemento?: string | null
+    bairro: string
+    cidade: string
+    estado: string
+  }
   torres: (Torre & {
     pavimentos: Pavimento[]
   })[]
@@ -10,7 +19,16 @@ export type ObraWithRelations = Obra & {
 export type CreateObraData = {
   nome: string
   cei: string
-  endereco: string
+  construtora: string
+  endereco: {
+    cep: string
+    logradouro: string
+    numero: string
+    complemento?: string
+    bairro: string
+    cidade: string
+    estado: string
+  }
   valorM2: number
   dataInicio: Date
   dataFim: Date
@@ -26,7 +44,7 @@ export type CreateObraData = {
 }
 
 export async function createObra(data: CreateObraData): Promise<ObraWithRelations> {
-  const { torres, ...obraData } = data
+  const { torres, endereco, ...obraData } = data
 
   const totalGeral = torres.reduce(
     (total, torre) =>
@@ -35,11 +53,28 @@ export async function createObra(data: CreateObraData): Promise<ObraWithRelation
     0
   )
 
+  const enderecoCreated = await db.endereco.create({
+    data: {
+      logradouro: endereco.logradouro,
+      numero: endereco.numero,
+      complemento: endereco.complemento,
+      bairro: endereco.bairro,
+      cidade: endereco.cidade,
+      estado: endereco.estado,
+    }
+  })
+
   const obra = await db.obra.create({
     data: {
-      ...obraData,
+      nome: obraData.nome,
+      cei: obraData.cei,
+      construtora: obraData.construtora,
       valorM2: new Prisma.Decimal(data.valorM2),
+      dataInicio: obraData.dataInicio,
+      dataFim: obraData.dataFim,
+      criadoPorId: obraData.criadoPorId,
       totalGeral: new Prisma.Decimal(totalGeral),
+      enderecoId: enderecoCreated.id,
       torres: {
         create: torres.map(torre => ({
           nome: torre.nome,
@@ -54,6 +89,7 @@ export async function createObra(data: CreateObraData): Promise<ObraWithRelation
       }
     },
     include: {
+      endereco: true,
       torres: {
         include: {
           pavimentos: true
@@ -69,6 +105,7 @@ export async function findObraById(id: string): Promise<ObraWithRelations | null
   return await db.obra.findUnique({
     where: { id },
     include: {
+      endereco: true,
       torres: {
         include: {
           pavimentos: true
@@ -88,6 +125,7 @@ export async function findObrasByCriadoPor(criadoPorId: string): Promise<Obra[]>
 export async function findAllObras(): Promise<ObraWithRelations[]> {
   return await db.obra.findMany({
     include: {
+      endereco: true,
       torres: {
         include: {
           pavimentos: true

@@ -1,4 +1,4 @@
-import type { Obra, Torre, Pavimento, Equipe, Atividade, DashboardMetrics } from "./types"
+import type { Obra, Torre, Pavimento, Atividade, DashboardMetrics } from "./types"
 
 export const mockObras: Obra[] = [
   {
@@ -12,7 +12,7 @@ export const mockObras: Obra[] = [
     total_m2: 15000,
     total_m3: 45000,
     torres: [],
-    equipes: [],
+
     atividades: [],
   },
   {
@@ -26,7 +26,7 @@ export const mockObras: Obra[] = [
     total_m2: 25000,
     total_m3: 75000,
     torres: [],
-    equipes: [],
+
     atividades: [],
   },
 ]
@@ -75,20 +75,7 @@ export const mockPavimentos: Pavimento[] = [
   },
 ]
 
-export const mockEquipes: Equipe[] = [
-  {
-    id: "1",
-    nome: "Equipe Estrutura",
-    integrantes: ["João Silva", "Maria Santos", "Pedro Oliveira"],
-    obra_id: "1",
-  },
-  {
-    id: "2",
-    nome: "Equipe Acabamento",
-    integrantes: ["Ana Costa", "Carlos Lima", "Lucia Ferreira"],
-    obra_id: "1",
-  },
-]
+
 
 export const mockAtividades: Atividade[] = [
   {
