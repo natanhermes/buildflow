@@ -16,7 +16,6 @@ export interface Obra {
   total_m2: number
   total_m3: number
   torres: Torre[]
-  equipes: Equipe[]
   atividades: Atividade[]
 }
 
@@ -41,12 +40,7 @@ export interface Pavimento {
   atividades: Atividade[]
 }
 
-export interface Equipe {
-  id: string
-  nome: string
-  integrantes: string[]
-  obra_id: string
-}
+
 
 export interface Atividade {
   id: string

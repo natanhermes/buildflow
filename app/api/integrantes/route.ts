@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { findAllIntegrantes, findIntegrantesByEquipe, createIntegrante } from '@/services/integrante/integrante.service'
+import { NextResponse } from 'next/server'
+import { findAllIntegrantes, findIntegrantesForSelect } from '@/services/integrante/integrante.service'
 import { auth } from '@/auth'
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -10,15 +10,14 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const equipeId = searchParams.get('equipeId')
+    const forSelect = searchParams.get('forSelect') === 'true'
 
-    let integrantes
-    if (equipeId) {
-      integrantes = await findIntegrantesByEquipe(equipeId)
-    } else {
-      integrantes = await findAllIntegrantes()
+    if (forSelect) {
+      const integrantes = await findIntegrantesForSelect()
+      return NextResponse.json(integrantes)
     }
 
+    const integrantes = await findAllIntegrantes()
     return NextResponse.json(integrantes)
   } catch (error) {
     console.error('Erro ao buscar integrantes:', error)
@@ -28,31 +27,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
-export async function POST(request: NextRequest) {
-  try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
-    }
-
-    const body = await request.json()
-    const { nome, equipeId } = body
-
-    if (!nome || !equipeId) {
-      return NextResponse.json(
-        { error: 'Nome e equipe são obrigatórios' },
-        { status: 400 }
-      )
-    }
-
-    const integrante = await createIntegrante({ nome, equipeId })
-    return NextResponse.json(integrante, { status: 201 })
-  } catch (error) {
-    console.error('Erro ao criar integrante:', error)
-    return NextResponse.json(
-      { error: 'Erro ao criar integrante' },
-      { status: 500 }
-    )
-  }
-} 

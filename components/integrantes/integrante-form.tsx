@@ -1,110 +1,68 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { User } from "lucide-react"
-import { useEquipes } from '@/hooks/equipes/use-equipes'
-import { createIntegranteAction } from '@/app/integrantes/actions'
+import { Loader2 } from "lucide-react"
+import { useActionState } from 'react'
+import { createIntegranteAction, type ActionState } from '@/app/integrantes/actions'
+import { withMask } from 'use-mask-input'
 
 export function IntegranteForm() {
-  const router = useRouter()
-  const { data: equipes } = useEquipes()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string[]>>({})
-
-  const handleSubmit = async (formData: FormData) => {
-    setIsSubmitting(true)
-    setErrors({})
-
-    try {
-      const result = await createIntegranteAction({}, formData)
-      
-      if (result.error) {
-        // Tratar erro geral
-        console.error(result.error)
-        return
-      }
-
-      if (result.fieldErrors) {
-        setErrors(result.fieldErrors)
-        return
-      }
-
-      if (result.success) {
-        router.push('/integrantes')
-      }
-    } catch (error) {
-      console.error('Erro ao criar integrante:', error)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const [state, formAction, isPending] = useActionState<ActionState, FormData>(
+    createIntegranteAction,
+    { success: false }
+  )
 
   return (
-    <Card className="max-w-2xl">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <User className="h-5 w-5" />
-          Informações do Integrante
-        </CardTitle>
+        <CardTitle>Informações do Integrante</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="nome">Nome do Integrante</Label>
-            <Input
-              id="nome"
-              name="nome"
-              placeholder="Nome completo do integrante"
-              required
-            />
-            {errors.nome && (
-              <p className="text-sm text-destructive">{errors.nome[0]}</p>
-            )}
+        <form action={formAction} className="space-y-4">
+          <div className="grid gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="nome">Nome Completo *</Label>
+              <Input
+                id="nome"
+                name="nome"
+                placeholder="Digite o nome completo"
+                required
+              />
+              {state?.fieldErrors?.nome && (
+                <p className="text-sm text-red-500">{state.fieldErrors.nome[0]}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="cpf">CPF *</Label>
+              <Input
+                id="cpf"
+                name="cpf"
+                ref={withMask('999.999.999-99')}
+                placeholder="000.000.000-00"
+                required
+              />
+              {state?.fieldErrors?.cpf && (
+                <p className="text-sm text-red-500">{state.fieldErrors.cpf[0]}</p>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="equipeId">Equipe</Label>
-            <Select name="equipeId" required>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma equipe" />
-              </SelectTrigger>
-              <SelectContent>
-                                 {equipes?.map((equipe) => (
-                   <SelectItem key={equipe.id} value={equipe.id}>
-                     {equipe.nome} - {equipe.obra.nome} (CEI: {equipe.obra.cei})
-                   </SelectItem>
-                 ))}
-              </SelectContent>
-            </Select>
-            {errors.equipeId && (
-              <p className="text-sm text-destructive">{errors.equipeId[0]}</p>
-            )}
-          </div>
+          {state?.error && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{state.error}</p>
+            </div>
+          )}
 
-          <div className="flex gap-2 pt-4">
-            <Button 
-              type="submit" 
-              disabled={isSubmitting}
-              className="flex-1"
-            >
-              {isSubmitting ? 'Criando...' : 'Criar Integrante'}
-            </Button>
-            <Button 
-              type="button" 
-              variant="outline"
-              onClick={() => router.push('/integrantes')}
-            >
-              Cancelar
-            </Button>
-          </div>
+          <Button type="submit" disabled={isPending} className="w-full">
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Cadastrar Integrante
+          </Button>
         </form>
       </CardContent>
     </Card>
   )
-} 
+}
