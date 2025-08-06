@@ -60,7 +60,7 @@ model Obra {
   cei            String   @unique
   construtora    String
   enderecoId     String
-  endereco       Endereco @relation(fields: [enderecoId], references: [id])
+  endereco       Endereco @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
   valorM2        Decimal
   dataInicio     DateTime
   dataFim        DateTime
