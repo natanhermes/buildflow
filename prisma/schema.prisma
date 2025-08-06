@@ -38,6 +38,11 @@ model Usuario {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices para performance
+  @@index([status])
+  @@index([role])
+  @@index([nome, sobrenome])
 }
 
 model Endereco {
@@ -52,6 +57,10 @@ model Endereco {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices para consultas geográficas
+  @@index([cidade, estado])
+  @@index([bairro])
 }
 
 model Obra {
@@ -76,6 +85,14 @@ model Obra {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices para performance
+  @@index([enderecoId])
+  @@index([criadoPorId])
+  @@index([nome])
+  @@index([construtora])
+  @@index([dataInicio, dataFim])
+  @@index([criadoPorId, dataInicio])
 }
 
 model Torre {
@@ -89,6 +106,10 @@ model Torre {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices para performance
+  @@index([obraId])
+  @@index([obraId, nome])
 }
 
 model Pavimento {
@@ -109,6 +130,12 @@ model Pavimento {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices para performance
+  @@index([torreId])
+  @@index([torreId, identificador])
+  @@index([dataExecucao])
+  @@index([percentualExecutado])
 }
 
 model Integrante {
@@ -118,6 +145,9 @@ model Integrante {
   atividadeIntegrantes AtividadeIntegrante[]
 
   createdAt DateTime @default(now())
+
+  // Índices para performance
+  @@index([nome])
 }
 
 enum Execucao {
@@ -155,6 +185,16 @@ model Atividade {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Índices críticos para performance
+  @@index([usuarioId])
+  @@index([obraId])
+  @@index([pavimentoId])
+  @@index([obraId, usuarioId])
+  @@index([obraId, createdAt])
+  @@index([usuarioId, createdAt])
+  @@index([execucao])
+  @@index([inicioExpediente])
 }
 
 model AtividadeIntegrante {
@@ -169,4 +209,8 @@ model AtividadeIntegrante {
   createdAt DateTime @default(now())
 
   @@unique([atividadeId, integranteId])
+  
+  // Índices para performance
+  @@index([atividadeId])
+  @@index([integranteId])
 }
