@@ -11,6 +11,7 @@ import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useActionState } from 'react'
 import { createAtividadeAction, type ActionState } from '../actions'
+import { IntegrantesModal } from "@/components/atividades/integrantes-modal"
 
 type Obra = {
   id: string
@@ -28,11 +29,7 @@ type Pavimento = {
   }
 }
 
-type Integrante = {
-  id: string
-  nome: string
-  cpf: string
-}
+
 
 export default function NovaAtividadePage() {
   const [state, formAction, isPending] = useActionState<ActionState, FormData>(
@@ -42,27 +39,19 @@ export default function NovaAtividadePage() {
 
   const [obras, setObras] = useState<Obra[]>([])
   const [pavimentos, setPavimentos] = useState<Pavimento[]>([])
-  const [integrantes, setIntegrantes] = useState<Integrante[]>([])
   const [selectedObra, setSelectedObra] = useState("")
+  const [selectedIntegrantes, setSelectedIntegrantes] = useState<string[]>([])
   const [loadingPavimentos, setLoadingPavimentos] = useState(false)
 
-  // Carregar obras e integrantes
+  // Carregar obras
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [obrasRes, integrantesRes] = await Promise.all([
-          fetch('/api/atividades/obras'),
-          fetch('/api/integrantes?forSelect=true')
-        ])
+        const obrasRes = await fetch('/api/atividades/obras')
 
         if (obrasRes.ok) {
           const obrasData = await obrasRes.json()
           setObras(obrasData)
-        }
-
-        if (integrantesRes.ok) {
-          const integrantesData = await integrantesRes.json()
-          setIntegrantes(integrantesData)
         }
       } catch (error) {
         console.error('Erro ao carregar dados:', error)
@@ -165,24 +154,19 @@ export default function NovaAtividadePage() {
 
               <div className="space-y-2">
                 <Label htmlFor="integranteIds">Integrantes *</Label>
-                <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    Selecione um ou mais integrantes para esta atividade:
-                  </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                    {integrantes.map((integrante) => (
-                      <label key={integrante.id} className="flex items-center space-x-2 text-sm">
-                        <input
-                          type="checkbox"
-                          name="integranteIds"
-                          value={integrante.id}
-                          className="rounded"
-                        />
-                        <span>{integrante.nome} - {integrante.cpf}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
+                <IntegrantesModal 
+                  selectedIntegrantes={selectedIntegrantes}
+                  onSelectionChange={setSelectedIntegrantes}
+                />
+                {/* Hidden inputs para enviar os integrantes selecionados */}
+                {selectedIntegrantes.map((integranteId) => (
+                  <input
+                    key={integranteId}
+                    type="hidden"
+                    name="integranteIds"
+                    value={integranteId}
+                  />
+                ))}
                 {state?.fieldErrors?.integranteIds && (
                   <p className="text-sm text-red-500">{state.fieldErrors.integranteIds[0]}</p>
                 )}
