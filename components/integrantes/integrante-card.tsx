@@ -1,8 +1,11 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { User, Calendar, Hash } from "lucide-react"
 import { type IntegranteWithRelations } from '@/services/integrante/integrante.service'
+import { AtividadesModal } from './atividades-modal'
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
@@ -53,9 +56,7 @@ export function IntegranteCard({ integrante }: IntegranteCardProps) {
           <Button variant="outline" size="sm" className="flex-1">
             Editar
           </Button>
-          <Button variant="outline" size="sm" className="flex-1">
-            Ver Atividades
-          </Button>
+          <AtividadesModal integrante={integrante} />
         </div>
       </CardContent>
     </Card>

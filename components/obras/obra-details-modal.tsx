@@ -12,11 +12,11 @@ import { Badge } from "@/components/ui/badge"
 import { Building2, MapPin, Calendar, DollarSign, Layers } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { ObraWithRelations } from "@/services/obra/obra.service"
+import { type SerializedObraWithRelations } from "@/hooks/obras/use-obras"
 import { formatCurrency, formatNumber } from "@/lib/utils"
 
 interface ObraDetailsModalProps {
-  obra: ObraWithRelations | null
+  obra: SerializedObraWithRelations | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }

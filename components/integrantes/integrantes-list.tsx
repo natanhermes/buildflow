@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input"
 import { IntegranteCard } from './integrante-card'
 import { EmptyState } from './empty-state'
 import { ErrorState } from './error-state'
-import { useState } from 'react'
 import { Search } from 'lucide-react'
 import { findAllIntegrantes } from '@/services/integrante/integrante.service'
 

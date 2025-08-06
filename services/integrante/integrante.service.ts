@@ -46,7 +46,9 @@ const INTEGRANTE_INCLUDE_LIMITED = {
   atividadeIntegrantes: {
     include: {
       atividade: {
-        include: {
+        select: {
+          id: true,
+          createdAt: true,
           obra: {
             select: {
               id: true,
@@ -100,30 +102,7 @@ export async function findIntegranteById(id: string): Promise<IntegranteWithRela
 
 export async function findAllIntegrantes(): Promise<IntegranteWithRelations[]> {
   return await db.integrante.findMany({
-    include: {
-      atividadeIntegrantes: {
-        include: {
-          atividade: {
-            include: {
-              obra: {
-                select: {
-                  id: true,
-                  nome: true,
-                }
-              },
-              pavimento: {
-                select: {
-                  id: true,
-                  identificador: true,
-                }
-              }
-            }
-          }
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 3
-      }
-    },
+    include: INTEGRANTE_INCLUDE_LIMITED,
     orderBy: { nome: 'asc' }
   })
 }

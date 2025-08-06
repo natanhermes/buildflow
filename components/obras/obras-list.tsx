@@ -7,14 +7,14 @@ import { ObraDetailsModal } from './obra-details-modal'
 import { EmptyState } from './empty-state'
 import { LoadingState } from './loading-state'
 import { ErrorState } from './error-state'
-import { type ObraWithRelations } from '@/services/obra/obra.service'
+import { useObras, type SerializedObraWithRelations } from '@/hooks/obras/use-obras'
 
 export function ObrasList() {
 	const { data: obras, isLoading, error, refetch } = useObras()
-	const [selectedObra, setSelectedObra] = useState<ObraWithRelations | null>(null)
+	const [selectedObra, setSelectedObra] = useState<SerializedObraWithRelations | null>(null)
 	const [isModalOpen, setIsModalOpen] = useState(false)
 
-	const handleViewDetails = (obra: ObraWithRelations) => {
+	const handleViewDetails = (obra: SerializedObraWithRelations) => {
 		setSelectedObra(obra)
 		setIsModalOpen(true)
 	}

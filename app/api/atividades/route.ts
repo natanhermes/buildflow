@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { findAllAtividades, findAtividadesByObra } from '@/services/atividades/atividade.service'
 import { auth } from '@/auth'
+import { serializeObject } from '@/lib/utils/serialization'
 
 export async function GET(request: Request) {
   try {
@@ -14,11 +15,13 @@ export async function GET(request: Request) {
 
     if (obraId) {
       const atividades = await findAtividadesByObra(obraId)
-      return NextResponse.json(atividades)
+      const serializedAtividades = serializeObject(atividades)
+      return NextResponse.json(serializedAtividades)
     }
 
     const atividades = await findAllAtividades()
-    return NextResponse.json(atividades)
+    const serializedAtividades = serializeObject(atividades)
+    return NextResponse.json(serializedAtividades)
   } catch (error) {
     console.error('Erro ao buscar atividades:', error)
     return NextResponse.json(

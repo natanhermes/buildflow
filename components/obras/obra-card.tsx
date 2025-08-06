@@ -4,12 +4,12 @@ import { Badge } from "@/components/ui/badge"
 import { Building2, MapPin, Calendar, Scan } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
-import { type ObraWithRelations } from "@/services/obra/obra.service"
+import { type SerializedObraWithRelations } from "@/hooks/obras/use-obras"
 import { formatNumber } from "@/lib/utils"
 
 interface ObraCardProps {
-  obra: ObraWithRelations
-  onViewDetails: (obra: ObraWithRelations) => void
+  obra: SerializedObraWithRelations
+  onViewDetails: (obra: SerializedObraWithRelations) => void
 }
 
 export function ObraCard({ obra, onViewDetails }: ObraCardProps) {
