@@ -1,0 +1,24 @@
+---
+name: Next.js – Segurança e Autenticação
+appliesTo:
+  - "app/api/**/*.ts"
+  - "app/**/*.tsx"
+  - "services/**/*.ts"
+---
+
+### Autenticação
+- Sempre verificar sessão em API Routes e Server Actions via `auth()`.
+- Retornar 401 em ausência de usuário; nunca prosseguir com dados sensíveis.
+
+### Autorização
+- Validar ownership/escopo antes de expor dados (ex.: `findObrasByCriadoPor`).
+- Evitar expor registros de outros usuários em listagens privadas.
+
+### Dados sensíveis
+- Nunca logar dados pessoais no cliente. Logs detalhados apenas no server.
+- Padronizar respostas de erro para evitar vazamento de detalhes internos.
+
+### Validações de entrada
+- Usar Zod para validar/sanitizar inputs.
+- Normalizar campos como CPF/CEP/CEI antes de validação e persistência.
+

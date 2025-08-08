@@ -1,0 +1,37 @@
+---
+name: Next.js – Dados, React Query e API Routes
+appliesTo:
+  - "hooks/**/*.ts"
+  - "app/api/**/*.ts"
+  - "services/**/*.ts"
+---
+
+### Objetivo
+Padronizar obtenção/mutação de dados com React Query, API Routes do App Router e serviços, garantindo tipagem e serialização adequadas.
+
+### React Query (cliente)
+- Usar `useSuspenseQuery` para listas/páginas com SSR + Suspense; fornecer `LoadingState` específico do módulo.
+- Definir `queryKey` centralizado por domínio (ex.: `obraQueryKeys`), sempre com factory (`lists`, `detail`) para consistência.
+- Funções de fetch devem retornar dados já serializados e tipados (ex.: `SerializedObraWithRelations`).
+- Invalidar/revalidar queries após mutações via Server Actions ou `revalidatePath` combinada com `queryClient.invalidateQueries` quando aplicável.
+
+### API Routes (server)
+- Cada rota valida sessão via `auth()` e retorna 401 sem usuário.
+- Orquestrar chamadas a serviços. Não conter regra de negócio.
+- Serializar respostas com utilitário do projeto antes do `NextResponse.json`.
+- Erros: retornar `{ error: string }` com status HTTP adequado. Logar erro no server, mensagem genérica no cliente.
+
+### Serviços (server)
+- Apenas serviços importam Prisma e concentram regra de negócio/queries.
+- Expor tipos de entrada/saída explícitos (ex.: `CreateObraData`, `ObraWithRelations`).
+- Calcular agregações no server (ex.: totais) para evitar custo no cliente.
+
+### Server Actions
+- Preferir Server Actions para submissão de formulários nativos (`<form action={formAction}>`).
+- Validar com Zod, retornar `fieldErrors` no estado da Action, e redirecionar via `redirect()` após sucesso.
+- Fazer checagens de unicidade antes de persistir (ex.: `checkCeiExists`).
+
+### Serialização
+- Antes de enviar dados ao cliente, converter `Decimal`/`Date` usando `lib/utils/serialization`.
+- Tipos `Serialized*` devem refletir a forma pós-serialização e ser reutilizados em hooks.
+
