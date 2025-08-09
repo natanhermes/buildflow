@@ -11,6 +11,8 @@ type PavimentoForSelect = {
   identificador: string
   areaM2: string
   argamassaM3: string
+  areaPreparadaAcumuladaM2?: string
+  percentualPreparacao?: string
   torre: {
     id: string
     nome: string

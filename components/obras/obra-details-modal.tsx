@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Building2, MapPin, Calendar, DollarSign, Layers } from "lucide-react"
+import { Building2, MapPin, Calendar, DollarSign, Layers, ContactRound } from "lucide-react"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { type SerializedObraWithRelations } from "@/hooks/obras/use-obras"
@@ -70,6 +70,30 @@ export function ObraDetailsModal({ obra, open, onOpenChange }: ObraDetailsModalP
                   </div>
                 </div>
 
+                {obra.enderecoCnpj && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                    <div className="flex gap-2">
+                      <span className="font-medium">Endereço CNPJ:</span>
+                      <p className="text-muted-foreground">
+                        {`${obra.enderecoCnpj.logradouro}, ${obra.enderecoCnpj.numero} - ${obra.enderecoCnpj.bairro}, ${obra.enderecoCnpj.cidade}/${obra.enderecoCnpj.estado}`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {obra.enderecoAcessoObra && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                    <div className="flex gap-2">
+                      <span className="font-medium">Acesso Obra:</span>
+                      <p className="text-muted-foreground">
+                        {`${obra.enderecoAcessoObra.logradouro}, ${obra.enderecoAcessoObra.numero} - ${obra.enderecoAcessoObra.bairro}, ${obra.enderecoAcessoObra.cidade}/${obra.enderecoAcessoObra.estado}`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="font-medium">Período:</span>
@@ -112,6 +136,73 @@ export function ObraDetailsModal({ obra, open, onOpenChange }: ObraDetailsModalP
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Dados Cadastrais</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <span className="font-medium">Razão Social: </span>
+                    <span>{obra.razaoSocial || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">CNPJ: </span>
+                    <span>{obra.cnpj || '-'}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">SFOBRAS: </span>
+                    <span>{obra.codigoSFOBRAS || '-'}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <span className="font-medium">SPC: </span>
+                    <span>{obra.statusConsultaSPC}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">% Mão Obra/Material: </span>
+                    <span>{obra.baseCalcMaoObraMaterial ?? '-'}%</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">% Locação Equip: </span>
+                    <span>{obra.baseCalcLocacaoEquip ?? '-'}%</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <span className="font-medium">Período Medição (dias): </span>
+                    <span>{obra.medicaoPeriodoDias}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Prazo Liberação (h): </span>
+                    <span>{obra.medicaoPrazoLiberacaoHoras}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {obra.contatos && obra.contatos.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ContactRound className="h-5 w-5" />
+                    Contatos da Obra
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  {obra.contatos.map((c) => (
+                    <div key={c.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 p-3 bg-gray-50 rounded">
+                      <div><span className="font-medium">Função: </span>{c.funcao}</div>
+                      <div><span className="font-medium">Nome: </span>{c.nome}</div>
+                      <div><span className="font-medium">Email: </span>{c.email || '-'}</div>
+                      <div><span className="font-medium">Telefone: </span>{c.telefone || '-'}</div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Estatísticas */}
             <Card>

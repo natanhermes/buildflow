@@ -1,0 +1,32 @@
+---
+name: Next.js – Padrões do Módulo de Obras
+appliesTo:
+  - "app/obras/**/*.tsx"
+  - "hooks/obras/**/*.ts"
+  - "services/obra/**/*.ts"
+  - "app/api/obras/**/*.ts"
+---
+
+### Padrões observados (referência)
+- Listagem usa `Suspense` + `ObrasList` que consome `useObras()` (React Query) e fallback `LoadingState`.
+- Criação usa Server Action (`createObraAction`) com `<form action={formAction}>`, `useActionState` e exibição de `fieldErrors`.
+- Validação com Zod (`obraSchema`) e normalização de dados (ex.: CEP formatado, máscara de CEI via `withMask`).
+- API `GET /api/obras` autentica via `auth()`, chama `findAllObras()` e serializa via `serializeObject`.
+- Serviços concentram Prisma e regra de negócio (`createObra`, `checkCeiExists`, agregações de totais no server).
+
+### Regras específicas
+- **Listas**: `useSuspenseQuery` com `obraQueryKeys.lists()` e `fetch('/api/obras')` retornando dados serializados. Tipar com `SerializedObraWithRelations[]`.
+- **Criação**: `createObraAction` deve:
+  - validar `FormData` com Zod;
+  - checar duplicidade de CEI;
+  - mapear estruturas aninhadas (`torres/pavimentos`) com índices sequenciais;
+  - persistir via `services/obra/obra.service.ts`;
+  - `revalidatePath('/obras')` e `redirect('/obras')` em sucesso.
+- **Formulário**: estados de pending nos botões; máscaras por ref; auto-preenchimento de endereço por CEP com loading inline e campos `readOnly` quando preenchidos.
+- **Serviços**: usar `Prisma.Decimal` para valores monetários/áreas e converter para tipos serializados na borda.
+- **API**: sempre autenticar, serializar e tratar erros com mensagens genéricas.
+
+### Extensões
+- Ao adicionar filtros/paginação, estender `obraQueryKeys` e incluir parâmetros na `queryKey` para cache correto.
+- Ao incluir mutações client-side, encapsular em hooks dedicados e invalidar as queries relacionadas.
+
