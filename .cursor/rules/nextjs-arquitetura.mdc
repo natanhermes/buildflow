@@ -1,0 +1,37 @@
+---
+name: Next.js – Arquitetura (App Router)
+appliesTo:
+  - "app/**/*.tsx"
+  - "app/**/*.ts"
+  - "components/**/*.tsx"
+  - "services/**/*.ts"
+  - "lib/**/*.ts"
+---
+
+### Objetivo
+Padronizar a arquitetura com App Router priorizando Server Components, limites claros entre UI, dados e regras de negócio, e foco em performance e DX.
+
+### Regras
+- **Componentes Server-first**: componentes são Server por padrão. Use `"use client"` apenas quando necessário (estado local, eventos, hooks do React Query/UI).
+- **Camadas**:
+  - **UI**: `app/**` e `components/**` devem conter apenas renderização e composição.
+  - **Dados**: hooks em `hooks/**` encapsulam React Query/fetch e expõem contratos typed.
+  - **Serviços**: `services/**` concentram regras de negócio e acesso ao Prisma. Não acessar Prisma direto em UI/hook.
+  - **Validações**: `lib/validations/**` com Zod; tipos compartilhados em `lib/types.ts` ou no próprio serviço.
+- **Rotas/API**: `app/api/**/route.ts` apenas orquestração: autentica, chama serviços, serializa, responde. Sem regra de negócio.
+- **Providers**: `components/query-provider.tsx` e `components/auth-provider.tsx` ficam no layout mais alto possível que precise deles. Evite providers em páginas isoladas.
+- **Serialização**: sempre serializar Decimals/Date com utilitário do projeto antes de retornar ao cliente.
+- **SSR/Suspense**: páginas devem usar `<Suspense>` com fallbacks específicos (skeletons/estados de loading do módulo).
+- **Navegação**: use `Link` do Next para navegação interna; redireções server-side via `redirect()` em Server Actions.
+
+### Quando usar Client Components
+- Interação com formulários, inputs, máscara de dados, hooks do React Query, controladores de UI (dialogs, dropdowns, modais).
+- Evite promover árvores inteiras a client; isole no mínimo necessário.
+
+### Organização de features
+- Agrupar por domínio: `app/<feature>/*`, `hooks/<feature>/*`, `services/<feature>/*`, `lib/validations/<feature>.ts`.
+- Reutilizar padrões de `obras` como referência para novos módulos.
+
+### Erros e logs
+- Mensagens de erro genéricas em UI. Logs detalhados apenas no server (API/Actions). Não logar dados sensíveis.
+

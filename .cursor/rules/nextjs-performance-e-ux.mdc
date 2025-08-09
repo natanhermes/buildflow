@@ -1,0 +1,29 @@
+---
+name: Next.js – Performance e Experiência de Usuário
+appliesTo:
+  - "app/**/*.tsx"
+  - "components/**/*.tsx"
+  - "hooks/**/*.ts"
+  - "app/api/**/*.ts"
+---
+
+### Renderização e splitting
+- Server Components por padrão reduz JS no cliente.
+- Isolar apenas o necessário em Client Components.
+- Usar `<Suspense>` com fallbacks específicos do domínio.
+
+### Dados e cache
+- Revalidar apenas o caminho necessário após mutações.
+- Chaves de query estáveis e granulares para minimizar refetches.
+- Evitar N+1 no cliente; compute agregações no server.
+
+### UI responsiva
+- Utilizar componentes de UI do design system para consistência.
+- Estados de loading/empty/error específicos do módulo (`components/obras/*`).
+- Inputs com feedback imediato, desabilitar ações durante pendências.
+
+### Otimizações diversas
+- Serializar `Decimal`/`Date` no server para reduzir parsing no cliente.
+- Evitar objetos pesados em context providers; preferir props/colocation.
+- Imagens com `next/image` e tamanhos responsivos quando aplicável.
+

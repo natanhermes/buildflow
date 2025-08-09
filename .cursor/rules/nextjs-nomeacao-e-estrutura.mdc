@@ -1,0 +1,28 @@
+---
+name: Next.js – Nomeação e Estrutura de Código
+appliesTo:
+  - "**/*.ts"
+  - "**/*.tsx"
+---
+
+### Estrutura de diretórios
+- Diretórios em kebab-case (ex.: `obras`, `nova`, `atividades`).
+- Arquivos de página em `app/<feature>/<rota>/page.tsx`.
+- Server Actions em `app/<feature>/actions.ts`.
+- Hooks de dados em `hooks/<feature>/*.ts`.
+- Serviços em `services/<feature>/*.service.ts`.
+
+### Exportação e nomes
+- Preferir named exports para componentes/utilitários.
+- Nomes descritivos e completos; evitar abreviações.
+- Tipos/Interfaces exportados com prefixo claro (`CreateObraData`, `ObraWithRelations`).
+
+### Componentes
+- Componentes de UI em `components/<feature>/*`. Estados de `loading/empty/error` específicos.
+- Componentes complexos quebrados em subcomponentes (ex.: `torres-form`).
+
+### Estilo de código
+- Sem comentários desnecessários; código autoexplicativo.
+- Funções curtas; extrair helpers quando necessário.
+- Evitar lógica de negócios em componentes.
+

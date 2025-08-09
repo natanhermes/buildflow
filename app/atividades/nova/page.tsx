@@ -30,9 +30,11 @@ export default function NovaAtividadePage() {
   const [formData, setFormData] = useState({
     dataExecucao: "",
     areaExecutadaM2: "",
+    areaPreparadaM2: "",
+    argamassaM3: "",
     aditivoM3: "",
     aditivoL: "",
-    execucao: "",
+    status: "",
     inicioExpediente: "",
     inicioAlmoco: "",
     fimAlmoco: "",
@@ -82,9 +84,11 @@ export default function NovaAtividadePage() {
       setFormData({
         dataExecucao: "",
         areaExecutadaM2: "",
+        areaPreparadaM2: "",
+        argamassaM3: "",
         aditivoM3: "",
         aditivoL: "",
-        execucao: "",
+        status: "",
         inicioExpediente: "",
         inicioAlmoco: "",
         fimAlmoco: "",
@@ -111,16 +115,16 @@ export default function NovaAtividadePage() {
 
     const areaExec = Number(formData.areaExecutadaM2)
     const areaTotal = Number(selectedPavimentoData.areaM2)
-    const argamassa = Number(selectedPavimentoData.argamassaM3)
+    const argamassa = Number(formData.argamassaM3) || 0
 
     const percentualExecutado = (areaExec / areaTotal) * 100
-    const espessuraCM = (argamassa / areaExec) * 100
+    const espessuraCM = argamassa > 0 ? (argamassa / areaExec) * 100 : 0
 
     return {
       percentualExecutado: Math.round(percentualExecutado * 100) / 100, // 2 decimal places
       espessuraCM: Math.round(espessuraCM * 100) / 100 // 2 decimal places
     }
-  }, [selectedPavimentoData, formData.areaExecutadaM2])
+  }, [selectedPavimentoData, formData.areaExecutadaM2, formData.argamassaM3])
 
   return (
     <div className="flex-1 space-y-4">
@@ -258,24 +262,26 @@ export default function NovaAtividadePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="execucao">Status de Execução</Label>
+                <Label htmlFor="status">Status</Label>
                 <Select 
-                  name="execucao" 
-                  value={formData.execucao} 
-                  onValueChange={(value) => updateFormData('execucao', value)}
+                  name="status" 
+                  value={formData.status} 
+                  onValueChange={(value) => updateFormData('status', value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="INICIAL">Inicial</SelectItem>
-                    <SelectItem value="MEIO">Em andamento</SelectItem>
-                    <SelectItem value="FINAL">Final</SelectItem>
-                    <SelectItem value="EXECUTADO">Executado</SelectItem>
+                    <SelectItem value="EXECUCAO">Execução</SelectItem>
+                    <SelectItem value="PREPARACAO_1">Preparação 1</SelectItem>
+                    <SelectItem value="PREPARACAO_2">Preparação 2</SelectItem>
+                    <SelectItem value="PREPARACAO_3">Preparação 3</SelectItem>
+                    <SelectItem value="MANUTENCAO">Manutenção</SelectItem>
+                    <SelectItem value="SEM_ATIVIDADE">Sem atividade</SelectItem>
                   </SelectContent>
                 </Select>
-                {state?.fieldErrors?.execucao && (
-                  <p className="text-sm text-red-500">{state.fieldErrors.execucao[0]}</p>
+                {state?.fieldErrors?.status && (
+                  <p className="text-sm text-red-500">{state.fieldErrors.status[0]}</p>
                 )}
               </div>
             </div>
@@ -301,31 +307,77 @@ export default function NovaAtividadePage() {
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="areaExecutadaM2">Área Executada (m²) *</Label>
-                      <Input
-                        id="areaExecutadaM2"
-                        name="areaExecutadaM2"
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        max={selectedPavimentoData.areaM2}
-                        placeholder={`Máximo: ${selectedPavimentoData.areaM2}m²`}
-                        value={formData.areaExecutadaM2}
-                        onChange={(e) => updateFormData('areaExecutadaM2', e.target.value)}
-                        required
-                      />
-                      {state?.fieldErrors?.areaExecutadaM2 && (
-                        <p className="text-sm text-red-500">{state.fieldErrors.areaExecutadaM2[0]}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        Área total do pavimento: {selectedPavimentoData.areaM2}m²
-                      </p>
-                    </div>
+                    {formData.status === 'EXECUCAO' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="areaExecutadaM2">Área Executada (m²) *</Label>
+                        <Input
+                          id="areaExecutadaM2"
+                          name="areaExecutadaM2"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          max={selectedPavimentoData.areaM2}
+                          placeholder={`Máximo: ${selectedPavimentoData.areaM2}m²`}
+                          value={formData.areaExecutadaM2}
+                          onChange={(e) => updateFormData('areaExecutadaM2', e.target.value)}
+                          required
+                        />
+                        {state?.fieldErrors?.areaExecutadaM2 && (
+                          <p className="text-sm text-red-500">{state.fieldErrors.areaExecutadaM2[0]}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Área total do pavimento: {selectedPavimentoData.areaM2}m²
+                        </p>
+                      </div>
+                    )}
+
+                    {(formData.status === 'PREPARACAO_1' || formData.status === 'PREPARACAO_2' || formData.status === 'PREPARACAO_3') && (
+                      <div className="space-y-2">
+                        <Label htmlFor="areaPreparadaM2">Área Preparada (m²) *</Label>
+                        <Input
+                          id="areaPreparadaM2"
+                          name="areaPreparadaM2"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          max={Number(selectedPavimentoData.areaM2) - Number(selectedPavimentoData.areaPreparadaAcumuladaM2 || 0)}
+                          placeholder={`Saldo máx.: ${Number(selectedPavimentoData.areaM2) - Number(selectedPavimentoData.areaPreparadaAcumuladaM2 || 0)}m²`}
+                          value={formData.areaPreparadaM2}
+                          onChange={(e) => updateFormData('areaPreparadaM2', e.target.value)}
+                          required
+                        />
+                        {state?.fieldErrors?.areaPreparadaM2 && (
+                          <p className="text-sm text-red-500">{state.fieldErrors.areaPreparadaM2[0]}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {formData.status === 'EXECUCAO' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="argamassaM3">Argamassa (m³) *</Label>
+                        <Input
+                          id="argamassaM3"
+                          name="argamassaM3"
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          placeholder="0.00"
+                          value={formData.argamassaM3}
+                          onChange={(e) => updateFormData('argamassaM3', e.target.value)}
+                          required
+                        />
+                        {state?.fieldErrors?.argamassaM3 && (
+                          <p className="text-sm text-red-500">{state.fieldErrors.argamassaM3[0]}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          Volume de argamassa utilizada na execução
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
-                  {/* Cálculos Automáticos */}
-                  {formData.areaExecutadaM2 && Number(formData.areaExecutadaM2) > 0 && (
+                  {/* Cálculos Automáticos - somente execução */}
+                  {formData.status === 'EXECUCAO' && formData.areaExecutadaM2 && Number(formData.areaExecutadaM2) > 0 && (
                     <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                       <h4 className="text-sm font-medium mb-3">Cálculos Automáticos</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,39 +401,43 @@ export default function NovaAtividadePage() {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="aditivoM3">Aditivo M³</Label>
-                <Input
-                  id="aditivoM3"
-                  name="aditivoM3"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={formData.aditivoM3}
-                  onChange={(e) => updateFormData('aditivoM3', e.target.value)}
-                />
-                {state?.fieldErrors?.aditivoM3 && (
-                  <p className="text-sm text-red-500">{state.fieldErrors.aditivoM3[0]}</p>
-                )}
-              </div>
+              {formData.status === 'EXECUCAO' && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="aditivoM3">Aditivo M³</Label>
+                    <Input
+                      id="aditivoM3"
+                      name="aditivoM3"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={formData.aditivoM3}
+                      onChange={(e) => updateFormData('aditivoM3', e.target.value)}
+                    />
+                    {state?.fieldErrors?.aditivoM3 && (
+                      <p className="text-sm text-red-500">{state.fieldErrors.aditivoM3[0]}</p>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="aditivoL">Aditivo L</Label>
-                <Input
-                  id="aditivoL"
-                  name="aditivoL"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="0.00"
-                  value={formData.aditivoL}
-                  onChange={(e) => updateFormData('aditivoL', e.target.value)}
-                />
-                {state?.fieldErrors?.aditivoL && (
-                  <p className="text-sm text-red-500">{state.fieldErrors.aditivoL[0]}</p>
-                )}
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="aditivoL">Aditivo L</Label>
+                    <Input
+                      id="aditivoL"
+                      name="aditivoL"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      value={formData.aditivoL}
+                      onChange={(e) => updateFormData('aditivoL', e.target.value)}
+                    />
+                    {state?.fieldErrors?.aditivoL && (
+                      <p className="text-sm text-red-500">{state.fieldErrors.aditivoL[0]}</p>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -524,8 +580,8 @@ export default function NovaAtividadePage() {
                   isLoadingObras || 
                   (!!selectedObra && isLoadingPavimentos) ||
                   !selectedPavimento ||
-                  !formData.areaExecutadaM2 ||
-                  Number(formData.areaExecutadaM2) <= 0
+                  (formData.status === 'EXECUCAO' && (!formData.areaExecutadaM2 || Number(formData.areaExecutadaM2) <= 0 || !formData.argamassaM3 || Number(formData.argamassaM3) <= 0)) ||
+                  ((formData.status === 'PREPARACAO_1' || formData.status === 'PREPARACAO_2' || formData.status === 'PREPARACAO_3') && (!formData.areaPreparadaM2 || Number(formData.areaPreparadaM2) <= 0))
                 }
               >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

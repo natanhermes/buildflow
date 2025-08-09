@@ -1,5 +1,5 @@
 import db from '@/lib/db'
-import { Atividade, Integrante, Obra, Pavimento, Usuario, Execucao, Prisma } from '@prisma/client'
+import { Atividade, Integrante, Obra, Pavimento, Usuario, Execucao, Prisma, StatusAtividade } from '@prisma/client'
 
 export type AtividadeWithRelations = Omit<Atividade, 'aditivoM3' | 'aditivoL' | 'saldoAcumuladoM2'> & {
   aditivoM3: number | null
@@ -53,6 +53,7 @@ export type CreateAtividadeData = {
   aditivoM3?: number
   aditivoL?: number
   execucao?: Execucao
+  status?: StatusAtividade
   inicioExpediente?: Date
   inicioAlmoco?: Date
   fimAlmoco?: Date
@@ -67,7 +68,8 @@ export type CreateAtividadeData = {
   pavimentoId: string
   // Campos do pavimento
   dataExecucao: Date
-  areaExecutadaM2: number
+  areaExecutadaM2?: number
+  areaPreparadaM2?: number
 }
 
 export async function createAtividade(data: CreateAtividadeData): Promise<AtividadeWithRelations> {
@@ -91,50 +93,90 @@ export async function createAtividade(data: CreateAtividadeData): Promise<Ativid
     throw new Error('Pavimento não encontrado')
   }
 
-  // Calcular o saldo acumulado
+  const status: StatusAtividade = data.status ?? 'EXECUCAO'
+
+  // Calcular o saldo acumulado (para métrica histórica)
   const saldoAcumulado = await calculateSaldoAcumulado(data.pavimentoId, pavimento.areaM2)
 
-  // Calcular percentual executado e espessura
-  const percentualExecutado = (data.areaExecutadaM2 / Number(pavimento.areaM2)) * 100
-  const espessuraCM = (Number(pavimento.argamassaM3) / data.areaExecutadaM2) * 100
+  // Preparar payload base
+  const {
+    integranteIds,
+    dataExecucao,
+    areaExecutadaM2,
+    areaPreparadaM2,
+    usuarioId,
+    obraId,
+    pavimentoId,
+    ...atividadeData
+  } = data
 
-  // Preparar dados para a transação
-  const { integranteIds, dataExecucao, areaExecutadaM2, ...atividadeData } = data
-  const atividadeCreateData = {
+  const atividadeCreateData: Prisma.AtividadeCreateInput = {
     ...atividadeData,
+    status,
     aditivoM3: data.aditivoM3 ? new Prisma.Decimal(data.aditivoM3) : null,
     aditivoL: data.aditivoL ? new Prisma.Decimal(data.aditivoL) : null,
     saldoAcumuladoM2: new Prisma.Decimal(saldoAcumulado),
+    usuario: { connect: { id: usuarioId } },
+    obra: { connect: { id: obraId } },
+    pavimento: { connect: { id: pavimentoId } },
     atividadeIntegrantes: {
       create: data.integranteIds.map(integranteId => ({
-        integranteId
+        integrante: { connect: { id: integranteId } },
       }))
     }
   }
-  
-  const pavimentoUpdateData = {
+
+  const pavimentoUpdateData: Prisma.PavimentoUpdateInput = {
     dataExecucao: data.dataExecucao,
-    areaExecutadaM2: new Prisma.Decimal(data.areaExecutadaM2),
-    percentualExecutado: new Prisma.Decimal(percentualExecutado),
-    espessuraCM: new Prisma.Decimal(espessuraCM),
+  }
+
+  // Branch por status
+  if (status === 'EXECUCAO') {
+    if (!areaExecutadaM2 || areaExecutadaM2 <= 0) {
+      throw new Error('Área executada deve ser maior que zero')
+    }
+    const percentualExecutado = (areaExecutadaM2 / Number(pavimento.areaM2)) * 100
+    const espessuraCM = (Number(pavimento.argamassaM3) / areaExecutadaM2) * 100
+    pavimentoUpdateData.areaExecutadaM2 = new Prisma.Decimal(areaExecutadaM2)
+    pavimentoUpdateData.percentualExecutado = new Prisma.Decimal(percentualExecutado)
+    pavimentoUpdateData.espessuraCM = new Prisma.Decimal(espessuraCM)
+
+    // Distribuir produção pelos integrantes
+    const producaoIndividual = areaExecutadaM2 / data.integranteIds.length
+    atividadeCreateData.atividadeIntegrantes = {
+      create: data.integranteIds.map(integranteId => ({
+        integrante: { connect: { id: integranteId } },
+        producaoM2: new Prisma.Decimal(producaoIndividual)
+      }))
+    }
+  } else if (status === 'PREPARACAO_1' || status === 'PREPARACAO_2' || status === 'PREPARACAO_3') {
+    if (!areaPreparadaM2 || areaPreparadaM2 <= 0) {
+      throw new Error('Área preparada deve ser maior que zero')
+    }
+    atividadeCreateData.areaPreparadaM2 = new Prisma.Decimal(areaPreparadaM2)
+
+    const acumuladoAtual = Number(pavimento.areaPreparadaAcumuladaM2 ?? 0)
+    const novaSoma = acumuladoAtual + areaPreparadaM2
+    const limite = Number(pavimento.areaM2)
+    const novoAcumulado = Math.min(novaSoma, limite)
+    const percentualPreparacao = (novoAcumulado / limite) * 100
+
+    pavimentoUpdateData.areaPreparadaAcumuladaM2 = new Prisma.Decimal(novoAcumulado)
+    pavimentoUpdateData.percentualPreparacao = new Prisma.Decimal(percentualPreparacao)
+    pavimentoUpdateData.preparacaoPendente = novoAcumulado < limite
+  } else {
+    // MANUTENCAO ou SEM_ATIVIDADE: apenas dataExecucao (já setada)
   }
 
   // Usar transação otimizada para criar atividade e atualizar pavimento
   let result
   try {
     result = await db.$transaction(async (tx) => {
-      // Criar a atividade
       const atividade = await tx.atividade.create({
         data: atividadeCreateData,
         include: ATIVIDADE_INCLUDE
       })
-
-      // Atualizar o pavimento
-      await tx.pavimento.update({
-        where: { id: data.pavimentoId },
-        data: pavimentoUpdateData
-      })
-
+      await tx.pavimento.update({ where: { id: pavimentoId }, data: pavimentoUpdateData })
       return atividade
     }, {
       timeout: 15000, // 15 segundos de timeout
@@ -439,6 +481,8 @@ export async function findPavimentosByObra(obraId: string): Promise<{
   identificador: string
   areaM2: string
   argamassaM3: string
+  areaPreparadaAcumuladaM2?: string
+  percentualPreparacao?: string
   torre: { id: string; nome: string }
 }[]> {
   const pavimentos = await db.pavimento.findMany({
@@ -452,6 +496,8 @@ export async function findPavimentosByObra(obraId: string): Promise<{
       identificador: true,
       areaM2: true,
       argamassaM3: true,
+      areaPreparadaAcumuladaM2: true,
+      percentualPreparacao: true,
       torre: {
         select: {
           id: true,
@@ -466,8 +512,12 @@ export async function findPavimentosByObra(obraId: string): Promise<{
   })
 
   return pavimentos.map(p => ({
-    ...p,
+    id: p.id,
+    identificador: p.identificador,
     areaM2: p.areaM2.toString(),
-    argamassaM3: p.argamassaM3.toString()
+    argamassaM3: p.argamassaM3.toString(),
+    areaPreparadaAcumuladaM2: p.areaPreparadaAcumuladaM2 ? p.areaPreparadaAcumuladaM2.toString() : undefined,
+    percentualPreparacao: p.percentualPreparacao ? p.percentualPreparacao.toString() : undefined,
+    torre: p.torre,
   }))
 }

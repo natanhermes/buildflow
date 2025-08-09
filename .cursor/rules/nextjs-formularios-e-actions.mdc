@@ -1,0 +1,34 @@
+---
+name: Next.js – Formulários, Server Actions e UX
+appliesTo:
+  - "app/**/*.tsx"
+  - "lib/validations/**/*.ts"
+  - "hooks/**/*.ts"
+---
+
+### Objetivo
+Padronizar a criação de formulários com foco em acessibilidade, validação e UX fluida usando Server Actions.
+
+### Padrão de formulário
+- Estrutura do form semelhante a `obras/nova`: `<form action={formAction}>` com `useActionState`.
+- Campos com `Label` e `Input`/`Select` de UI. Erros específicos exibidos por campo (`state.fieldErrors?.campo`).
+- Botão de submit desativa com `isPending` e muda o rótulo (ex.: "Criando...").
+- Inputs com máscaras somente via refs utilitárias (ex.: `withMask`) sem promover componente inteiro a client quando não necessário.
+
+### Validação
+- Validar com Zod no server (`safeParse`). Em erro, retornar `fieldErrors` achatado.
+- Sanitizar/normalizar (ex.: `cep` com dígitos apenas) antes de validar.
+- Checagens de unicidade (ex.: CEI) antes de criar registros; retornar erro de campo.
+
+### UX e acessibilidade
+- Loading inline (ícones/spinners) para campos com auto-preenchimento (ex.: CEP).
+- Campos autocompletados ficam `readOnly` e controlados para evitar discrepância.
+- Fallbacks visuais consistentes via skeletons ou mensagens vazias nos blocos da UI.
+
+### Extração de dados do FormData
+- Extrair arrays/estruturas aninhadas com índices incrementais (`torres.{i}.pavimentos.{j}.campo`).
+- Converter números explicitamente e garantir defaults estáveis.
+
+### Pós-sucesso
+- Revalidar a lista relacionada (`revalidatePath('/<feature>')`) e redirecionar para a rota de listagem.
+

@@ -1,4 +1,4 @@
-import { PrismaClient, Role, Status, Execucao } from '@prisma/client'
+import { PrismaClient, Role, Status, StatusAtividade } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -67,61 +67,73 @@ async function main() {
 
   console.log(`✅ Criados ${usuarios.length} usuários`)
 
-  // Criar obras realistas
-  const obrasData = [
+  // Criar obras com novos campos e endereços
+  const obrasConfig = [
     {
       nome: 'Residencial Vista Verde',
       cei: '12.345.678/0001-90',
-      endereco: 'Rua das Palmeiras, 123 - Jardim das Flores, Natal/RN',
+      construtora: 'Construtora Alfa',
       valorM2: 2800,
       dataInicio: new Date('2024-01-15'),
       dataFim: new Date('2025-06-15'),
+      enderecoObra: { logradouro: 'Rua das Palmeiras', numero: '123', bairro: 'Jardim das Flores', cidade: 'Natal', estado: 'RN' },
+      enderecoCnpj: { logradouro: 'Av. Central', numero: '100', bairro: 'Centro', cidade: 'Natal', estado: 'RN' },
+      enderecoAcesso: { logradouro: 'Rua de Serviço', numero: 'S/N', bairro: 'Industrial', cidade: 'Natal', estado: 'RN' },
+      razaoSocial: 'Vista Verde SPE LTDA',
+      cnpj: '12.345.678/0001-90',
+      codigoSFOBRAS: 'SF-001',
+      baseCalcMaoObraMaterial: 80,
+      baseCalcLocacaoEquip: 20,
       torres: ['Torre A', 'Torre B'],
       pavimentosPorTorre: 12
     },
     {
       nome: 'Edifício Comercial Central',
       cei: '98.765.432/0001-10',
-      endereco: 'Av. Engenheiro Roberto Freire, 1000 - Capim Macio, Natal/RN',
+      construtora: 'Construtora Beta',
       valorM2: 3500,
       dataInicio: new Date('2024-03-01'),
       dataFim: new Date('2025-12-01'),
+      enderecoObra: { logradouro: 'Av. Eng. Roberto Freire', numero: '1000', bairro: 'Capim Macio', cidade: 'Natal', estado: 'RN' },
+      razaoSocial: 'Comercial Central SPE LTDA',
+      cnpj: '98.765.432/0001-10',
+      codigoSFOBRAS: 'SF-002',
+      baseCalcMaoObraMaterial: 70,
+      baseCalcLocacaoEquip: 30,
       torres: ['Torre Única'],
       pavimentosPorTorre: 20
-    },
-    {
-      nome: 'Condomínio Jardim das Flores',
-      cei: '11.222.333/0001-44',
-      endereco: 'Rua dos Girassóis, 456 - Ponta Negra, Natal/RN',
-      valorM2: 2200,
-      dataInicio: new Date('2024-02-10'),
-      dataFim: new Date('2025-08-10'),
-      torres: ['Bloco 1', 'Bloco 2', 'Bloco 3'],
-      pavimentosPorTorre: 8
     }
   ]
 
-  const obras = []
-  for (const obraData of obrasData) {
-    // Calcular área total estimada
-    const areaTotalEstimada = obraData.torres.length * obraData.pavimentosPorTorre * (Math.floor(Math.random() * 200) + 150)
-    const totalGeral = areaTotalEstimada * obraData.valorM2
+  const obras: any[] = []
+  for (const cfg of obrasConfig) {
+    const endObra = await prisma.endereco.create({ data: cfg.enderecoObra })
+    const endCnpj = cfg.enderecoCnpj ? await prisma.endereco.create({ data: cfg.enderecoCnpj }) : null
+    const endAcesso = cfg.enderecoAcesso ? await prisma.endereco.create({ data: cfg.enderecoAcesso }) : null
 
     const obra = await prisma.obra.create({
       data: {
-        nome: obraData.nome,
-        cei: obraData.cei,
-        endereco: obraData.endereco,
-        valorM2: obraData.valorM2,
-        dataInicio: obraData.dataInicio,
-        dataFim: obraData.dataFim,
-        totalGeral: totalGeral,
-        totalExecutado: Math.floor(totalGeral * (Math.random() * 0.4 + 0.1)), // 10-50% executado
-        totalPendente: Math.floor(totalGeral * (Math.random() * 0.4 + 0.5)), // 50-90% pendente
-        criadoPorId: usuarios[0].id
+        nome: cfg.nome,
+        cei: cfg.cei,
+        construtora: cfg.construtora,
+        valorM2: cfg.valorM2,
+        dataInicio: cfg.dataInicio,
+        dataFim: cfg.dataFim,
+        totalGeral: 0,
+        criadoPorId: usuarios[0].id,
+        enderecoObraId: endObra.id,
+        enderecoCnpjId: endCnpj?.id,
+        enderecoAcessoObraId: endAcesso?.id,
+        razaoSocial: cfg.razaoSocial,
+        cnpj: cfg.cnpj,
+        codigoSFOBRAS: cfg.codigoSFOBRAS,
+        baseCalcMaoObraMaterial: cfg.baseCalcMaoObraMaterial,
+        baseCalcLocacaoEquip: cfg.baseCalcLocacaoEquip,
+        medicaoPeriodoDias: 15,
+        medicaoPrazoLiberacaoHoras: 48,
       }
     })
-    obras.push({ ...obra, config: obraData })
+    obras.push({ ...obra, cfg })
   }
 
   console.log(`✅ Criadas ${obras.length} obras`)
@@ -131,7 +143,7 @@ async function main() {
   const pavimentos = []
   
   for (const obra of obras) {
-    for (const nomeTorre of obra.config.torres) {
+    for (const nomeTorre of obra.cfg.torres) {
       const torre = await prisma.torre.create({
         data: {
           nome: nomeTorre,
@@ -141,7 +153,7 @@ async function main() {
       torres.push({ ...torre, obraId: obra.id })
 
       // Criar pavimentos para cada torre
-      for (let i = 0; i < obra.config.pavimentosPorTorre; i++) {
+      for (let i = 0; i < obra.cfg.pavimentosPorTorre; i++) {
         const identificador = i === 0 ? 'Térreo' : 
                              i === 1 ? '1º Andar' : 
                              `${i}º Andar`
@@ -201,7 +213,6 @@ async function main() {
 
   // Criar atividades com relacionamentos realistas
   const atividades = []
-  const execucaoOptions: Execucao[] = ['EXECUTADO', 'INICIAL', 'MEIO', 'FINAL']
   const observacoesExecucao = [
     'Execução de contrapiso conforme especificação técnica',
     'Aplicação de argamassa niveladora nos pavimentos',
@@ -296,32 +307,55 @@ async function main() {
     const incremento = Number(pavimentoEscolhido.areaM2) * (Math.random() * 0.3 + 0.1) // 10-40% da área
     const novoSaldo = saldoAnterior + incremento
 
-    const atividade = await prisma.atividade.create({
-      data: {
-        aditivoM3: Math.random() > 0.4 ? Math.floor(Math.random() * 30) + 5 : null,
-        aditivoL: Math.random() > 0.4 ? Math.floor(Math.random() * 80) + 10 : null,
-        saldoAcumuladoM2: novoSaldo,
-        execucao: execucaoOptions[Math.floor(Math.random() * execucaoOptions.length)],
-        inicioExpediente,
-        inicioAlmoco,
-        fimAlmoco,
-        fimExpediente,
-        obsExecucao: Math.random() > 0.3 ? observacoesExecucao[Math.floor(Math.random() * observacoesExecucao.length)] : null,
-        obsPonto: Math.random() > 0.4 ? observacoesPonto[Math.floor(Math.random() * observacoesPonto.length)] : null,
-        obsQtdBetoneira: Math.random() > 0.5 ? observacoesBetoneira[Math.floor(Math.random() * observacoesBetoneira.length)] : null,
-        obsHOI: Math.random() > 0.7 ? 'Sem ocorrências reportadas' : Math.random() > 0.9 ? 'Pequeno atraso devido à chuva' : null,
-        usuarioId: usuarioResponsavel.id,
-        obraId: obraEscolhida.id,
-        pavimentoId: pavimentoEscolhido.id,
-        createdAt: dataAtividade, // Definir data específica
-        atividadeIntegrantes: {
-          create: integrantesSelecionados.map(integrante => ({
-            integranteId: integrante.id
-          }))
+    const modo: StatusAtividade = (dia % 5 === 0) ? 'SEM_ATIVIDADE' : (dia % 4 === 0) ? 'PREPARACAO_1' : 'EXECUCAO'
+    if (modo === 'EXECUCAO') {
+      const areaExec = Math.min(Number(pavimentoEscolhido.areaM2), Math.floor(Math.random() * 100) + 30)
+      const producaoIndividual = areaExec / integrantesSelecionados.length
+      const atividade = await prisma.atividade.create({
+        data: {
+          status: 'EXECUCAO',
+          aditivoM3: Math.random() > 0.4 ? Math.floor(Math.random() * 30) + 5 : null,
+          aditivoL: Math.random() > 0.4 ? Math.floor(Math.random() * 80) + 10 : null,
+          saldoAcumuladoM2: novoSaldo,
+          inicioExpediente,
+          inicioAlmoco,
+          fimAlmoco,
+          fimExpediente,
+          obsExecucao: Math.random() > 0.3 ? 'Execução realizada' : null,
+          usuarioId: usuarioResponsavel.id,
+          obraId: obraEscolhida.id,
+          pavimentoId: pavimentoEscolhido.id,
+          createdAt: dataAtividade,
+          atividadeIntegrantes: {
+            create: integrantesSelecionados.map(integrante => ({ integranteId: integrante.id, producaoM2: producaoIndividual }))
+          }
         }
-      }
-    })
-    atividades.push(atividade)
+      })
+      atividades.push(atividade)
+    } else if (modo === 'PREPARACAO_1') {
+      const atividade = await prisma.atividade.create({
+        data: {
+          status: 'PREPARACAO_1',
+          areaPreparadaM2: Math.floor(Math.random() * 50) + 10,
+          usuarioId: usuarioResponsavel.id,
+          obraId: obraEscolhida.id,
+          pavimentoId: pavimentoEscolhido.id,
+          createdAt: dataAtividade,
+        }
+      })
+      atividades.push(atividade)
+    } else {
+      const atividade = await prisma.atividade.create({
+        data: {
+          status: 'SEM_ATIVIDADE',
+          usuarioId: usuarioResponsavel.id,
+          obraId: obraEscolhida.id,
+          pavimentoId: pavimentoEscolhido.id,
+          createdAt: dataAtividade,
+        }
+      })
+      atividades.push(atividade)
+    }
   }
 
   console.log(`✅ Criadas ${atividades.length} atividades`)
@@ -338,19 +372,6 @@ async function main() {
     prisma.atividade.count()
   ])
 
-  // Estatísticas de relacionamentos
-  const atividadesPorObra = await prisma.atividade.groupBy({
-    by: ['obraId'],
-    _count: { id: true }
-  })
-  
-  const integrantesMaisAtivos = await prisma.atividade.groupBy({
-    by: ['integranteId'],
-    _count: { id: true },
-    orderBy: { _count: { id: 'desc' } },
-    take: 5
-  })
-
   console.log('\n📊 Resumo dos dados criados:')
   console.log(`👤 Usuários: ${counts[0]}`)
   console.log(`🏗️ Obras: ${counts[1]}`)
@@ -362,28 +383,7 @@ async function main() {
   console.log('\n🔗 Relacionamentos criados:')
   console.log(`📈 Atividades distribuídas entre ${counts[1]} obras`)
   console.log(`👥 ${counts[4]} integrantes participando de atividades`)
-  console.log(`🏗️ Média de ${Math.round(counts[5] / counts[1])} atividades por obra`)
   console.log(`📅 Atividades distribuídas ao longo de 6 meses`)
-  
-  // Buscar integrante mais ativo para exemplo
-  const integranteMaisAtivo = await prisma.integrante.findFirst({
-    include: {
-      atividades: {
-        include: { obra: { select: { nome: true } } },
-        take: 1
-      }
-    },
-    where: {
-      atividades: { some: {} }
-    }
-  })
-
-  if (integranteMaisAtivo && integranteMaisAtivo.atividades.length > 0) {
-    const totalAtividades = await prisma.atividade.count({
-      where: { integranteId: integranteMaisAtivo.id }
-    })
-    console.log(`🌟 Integrante mais ativo: ${integranteMaisAtivo.nome} (${totalAtividades} atividades)`)
-  }
 }
 
 main()
