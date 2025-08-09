@@ -10,7 +10,6 @@ interface Pavimento {
   id: string
   identificador: string
   areaM2: number
-  argamassaM3: number
 }
 
 interface Torre {
@@ -51,7 +50,6 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
             id: Date.now().toString(),
             identificador: `Pavimento ${torre.pavimentos.length + 1}`,
             areaM2: 0,
-            argamassaM3: 0,
           }
           return {
             ...torre,
@@ -154,7 +152,7 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
                   </p>
                 )}
                 {torre.pavimentos.map((pavimento, pavIndex) => (
-                  <div key={pavimento.id} className="grid grid-cols-1 md:grid-cols-4 gap-2 p-2 border rounded">
+                  <div key={pavimento.id} className="grid grid-cols-1 md:grid-cols-3 gap-2 p-2 border rounded">
                     <div className="space-y-1">
                       <Label htmlFor={`pav-id-${pavimento.id}`} className="text-xs">
                         Identificador
@@ -177,20 +175,6 @@ export function TorresForm({ torres, onChange, errors }: TorresFormProps) {
                         type="number"
                         value={pavimento.areaM2}
                         onChange={(e) => atualizarPavimento(torre.id, pavimento.id, "areaM2", Number(e.target.value) || 0)}
-                        placeholder="0"
-                        step="0.01"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor={`pav-argamassa-${pavimento.id}`} className="text-xs">
-                        Argamassa (m³)
-                      </Label>
-                      <Input
-                        id={`pav-argamassa-${pavimento.id}`}
-                        name={`torres.${torreIndex}.pavimentos.${pavIndex}.argamassaM3`}
-                        type="number"
-                        value={pavimento.argamassaM3}
-                        onChange={(e) => atualizarPavimento(torre.id, pavimento.id, "argamassaM3", Number(e.target.value) || 0)}
                         placeholder="0"
                         step="0.01"
                       />

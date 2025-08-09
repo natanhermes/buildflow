@@ -20,9 +20,11 @@ export type IntegranteWithRelations = Integrante & {
 // Constante para padronizar includes
 const INTEGRANTE_INCLUDE = {
   atividadeIntegrantes: {
-    include: {
+    select: {
       atividade: {
-        include: {
+        select: {
+          id: true,
+          createdAt: true,
           obra: {
             select: {
               id: true,
@@ -44,7 +46,7 @@ const INTEGRANTE_INCLUDE = {
 
 const INTEGRANTE_INCLUDE_LIMITED = {
   atividadeIntegrantes: {
-    include: {
+    select: {
       atividade: {
         select: {
           id: true,

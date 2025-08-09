@@ -3,7 +3,6 @@ import { z } from 'zod'
 export const pavimentoSchema = z.object({
   identificador: z.string().min(1, 'Identificador é obrigatório'),
   areaM2: z.coerce.number().positive('Área deve ser maior que zero'),
-  argamassaM3: z.coerce.number().positive('Argamassa deve ser maior que zero'),
 })
 
 export const torreSchema = z.object({
@@ -26,6 +25,34 @@ export const obraSchema = z.object({
   cei: z.string().min(1, 'CEI é obrigatório').regex(/^\d{2}\.\d{3}\.\d{5}\/\d{2}$/, 'Formato de CEI inválido'),
   construtora: z.string().min(1, 'Construtora é obrigatória'),
   endereco: enderecoSchema,
+  enderecoCnpj: enderecoSchema.optional(),
+  enderecoAcessoObra: enderecoSchema.optional(),
+  razaoSocial: z.string().optional(),
+  cnpj: z
+    .string()
+    .regex(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/, 'Formato de CNPJ inválido')
+    .optional(),
+  codigoSFOBRAS: z.string().optional(),
+  statusConsultaSPC: z.enum(['NAO_REALIZADA', 'REALIZADA_SEM_PENDENCIAS', 'REALIZADA_COM_PENDENCIAS']).optional(),
+  baseCalcMaoObraMaterial: z.coerce.number().min(0).max(100).optional(),
+  baseCalcLocacaoEquip: z.coerce.number().min(0).max(100).optional(),
+  medicaoPeriodoDias: z.coerce.number().int().min(1).default(15).optional(),
+  medicaoPrazoLiberacaoHoras: z.coerce.number().int().min(1).default(48).optional(),
+  contatos: z
+    .array(
+      z.object({
+        funcao: z.string().min(1, 'Função é obrigatória'),
+        nome: z.string().min(1, 'Nome é obrigatório'),
+        email: z.string().email('Email inválido').optional(),
+        telefone: z
+          .string()
+          .regex(/^\+?\d{10,15}$/,
+            'Telefone deve conter entre 10 e 15 dígitos, com DDI/DDD se necessário'
+          )
+          .optional(),
+      })
+    )
+    .optional(),
   valorM2: z.coerce.number().positive('Valor por m² deve ser maior que zero'),
   dataInicio: z.string().min(1, 'Data de início é obrigatória'),
   dataFim: z.string().min(1, 'Data de fim é obrigatória'),

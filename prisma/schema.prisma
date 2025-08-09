@@ -24,6 +24,26 @@ enum Status {
   INACTIVE
 }
 
+// Novos enums de negócio
+enum StatusConsultaSPC {
+  NAO_REALIZADA
+  REALIZADA_SEM_PENDENCIAS
+  REALIZADA_COM_PENDENCIAS
+}
+
+enum StatusAtividade {
+  EXECUCAO
+  PREPARACAO_1
+  PREPARACAO_2
+  PREPARACAO_3
+  MANUTENCAO
+  SEM_ATIVIDADE
+}
+
+enum MedicaoPeriodicidade {
+  QUINZENAL
+}
+
 model Usuario {
   id         String      @id @default(uuid())
   username   String      @unique
@@ -53,7 +73,11 @@ model Endereco {
   bairro      String
   cidade      String
   estado      String
-  obras       Obra[]
+
+  // Relações nomeadas com Obra
+  obrasEndereco       Obra[] @relation("EnderecoObra")
+  obrasEnderecoCnpj   Obra[] @relation("EnderecoCnpj")
+  obrasEnderecoAcesso Obra[] @relation("EnderecoAcessoObra")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -64,12 +88,19 @@ model Endereco {
 }
 
 model Obra {
-  id             String   @id @default(uuid())
-  nome           String
-  cei            String   @unique
-  construtora    String
-  enderecoId     String
-  endereco       Endereco @relation(fields: [enderecoId], references: [id], onDelete: Cascade)
+  id          String @id @default(uuid())
+  nome        String
+  cei         String @unique
+  construtora String
+
+  // Endereços distintos
+  enderecoObraId       String    @map("enderecoId")
+  endereco             Endereco  @relation("EnderecoObra", fields: [enderecoObraId], references: [id], onDelete: Cascade)
+  enderecoCnpjId       String?
+  enderecoCnpj         Endereco? @relation("EnderecoCnpj", fields: [enderecoCnpjId], references: [id], onDelete: SetNull)
+  enderecoAcessoObraId String?
+  enderecoAcessoObra   Endereco? @relation("EnderecoAcessoObra", fields: [enderecoAcessoObraId], references: [id], onDelete: SetNull)
+
   valorM2        Decimal
   dataInicio     DateTime
   dataFim        DateTime
@@ -77,22 +108,55 @@ model Obra {
   totalExecutado Decimal?
   totalPendente  Decimal?
 
+  // Novos campos cadastrais
+  razaoSocial                String?
+  cnpj                       String?
+  codigoSFOBRAS              String?
+  statusConsultaSPC          StatusConsultaSPC    @default(NAO_REALIZADA)
+  baseCalcMaoObraMaterial    Decimal?
+  baseCalcLocacaoEquip       Decimal?
+  medicaoPeriodicidade       MedicaoPeriodicidade @default(QUINZENAL)
+  medicaoPeriodoDias         Int                  @default(15)
+  medicaoPrazoLiberacaoHoras Int                  @default(48)
+
   criadoPorId String
   criadoPor   Usuario @relation("UsuarioObras", fields: [criadoPorId], references: [id])
 
   torres     Torre[]
   atividades Atividade[]
+  contatos   ContatoObra[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   // Índices para performance
-  @@index([enderecoId])
+  @@index([enderecoObraId])
+  @@index([enderecoCnpjId])
+  @@index([enderecoAcessoObraId])
   @@index([criadoPorId])
   @@index([nome])
   @@index([construtora])
   @@index([dataInicio, dataFim])
   @@index([criadoPorId, dataInicio])
+  @@index([cnpj])
+  @@index([codigoSFOBRAS])
+  @@index([statusConsultaSPC])
+}
+
+model ContatoObra {
+  id     String @id @default(uuid())
+  obraId String
+  obra   Obra   @relation(fields: [obraId], references: [id], onDelete: Cascade)
+
+  funcao   String
+  nome     String
+  email    String?
+  telefone String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([obraId])
 }
 
 model Torre {
@@ -123,6 +187,11 @@ model Pavimento {
   espessuraCM         Decimal?
   obs                 String?
 
+  // Preparação
+  areaPreparadaAcumuladaM2 Decimal? @default(0)
+  percentualPreparacao     Decimal? @default(0)
+  preparacaoPendente       Boolean  @default(true)
+
   torreId String
   torre   Torre  @relation(fields: [torreId], references: [id], onDelete: Cascade)
 
@@ -136,6 +205,8 @@ model Pavimento {
   @@index([torreId, identificador])
   @@index([dataExecucao])
   @@index([percentualExecutado])
+  @@index([preparacaoPendente])
+  @@index([percentualPreparacao])
 }
 
 model Integrante {
@@ -158,11 +229,13 @@ enum Execucao {
 }
 
 model Atividade {
-  id               String    @id @default(uuid())
+  id               String          @id @default(uuid())
   aditivoM3        Decimal?
   aditivoL         Decimal?
   saldoAcumuladoM2 Decimal?
   execucao         Execucao?
+  status           StatusAtividade @default(EXECUCAO)
+  areaPreparadaM2  Decimal?
   inicioExpediente DateTime?
   inicioAlmoco     DateTime?
   fimAlmoco        DateTime?
@@ -194,6 +267,7 @@ model Atividade {
   @@index([obraId, createdAt])
   @@index([usuarioId, createdAt])
   @@index([execucao])
+  @@index([status])
   @@index([inicioExpediente])
 }
 
@@ -206,10 +280,11 @@ model AtividadeIntegrante {
   integranteId String
   integrante   Integrante @relation(fields: [integranteId], references: [id], onDelete: Cascade)
 
+  producaoM2 Decimal?
+
   createdAt DateTime @default(now())
 
   @@unique([atividadeId, integranteId])
-  
   // Índices para performance
   @@index([atividadeId])
   @@index([integranteId])

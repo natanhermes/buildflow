@@ -44,6 +44,7 @@ export async function createAtividadeAction(
       fimExpediente: validatedData.fimExpediente ? new Date(`1970-01-01T${validatedData.fimExpediente}:00`) : undefined,
       dataExecucao: new Date(validatedData.dataExecucao),
       areaExecutadaM2: validatedData.areaExecutadaM2,
+      areaPreparadaM2: validatedData.areaPreparadaM2,
     })
 
     revalidatePath('/atividades')
@@ -75,8 +76,8 @@ function extractFormData(formData: FormData): AtividadeFormData {
   const aditivoL = formData.get('aditivoL') as string
   if (aditivoL) data.aditivoL = Number(aditivoL)
 
-  const execucao = formData.get('execucao') as string
-  if (execucao) data.execucao = execucao as 'EXECUTADO' | 'INICIAL' | 'MEIO' | 'FINAL'
+  const status = formData.get('status') as string
+  if (status) (data as any).status = status as any
 
   const inicioExpediente = formData.get('inicioExpediente') as string
   if (inicioExpediente) data.inicioExpediente = inicioExpediente
@@ -108,6 +109,9 @@ function extractFormData(formData: FormData): AtividadeFormData {
 
   const areaExecutadaM2 = formData.get('areaExecutadaM2') as string
   if (areaExecutadaM2) data.areaExecutadaM2 = Number(areaExecutadaM2)
+
+  const areaPreparadaM2 = formData.get('areaPreparadaM2') as string
+  if (areaPreparadaM2) (data as any).areaPreparadaM2 = Number(areaPreparadaM2)
 
   return data
 }
